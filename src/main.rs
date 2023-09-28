@@ -1,10 +1,40 @@
-use std::net::{TcpListener, Ipv4Addr, SocketAddrV4, TcpStream};
+use std::net::{TcpListener, Ipv4Addr, SocketAddrV4, TcpStream, SocketAddr};
 use std::time::Duration;
 use std::io::{Read, Write};
 
 
 const READ_TIMEOUT: (u64, u32) = (10, 0);
 const WRITE_TIMEOUT: (u64, u32) = (10, 0);
+
+struct User {
+    nickname: String,
+    belong_topics: Vec<String>,
+    ip: SocketAddr,
+}
+
+impl User {
+    fn new(name: String, ip: SocketAddr) -> User {
+        User {
+            nickname: name,
+            belong_topics: Vec::new(),
+            ip: ip,
+        }
+    }
+}
+
+struct Server {
+    online_users: Vec<User>,
+    topics: Vec<String>,
+}
+
+impl Server {
+    fn new() -> Server {
+        Server {
+            online_users: Vec::new(),
+            topics: Vec::new(),
+        }
+    }
+}
 
 struct CommandHandler {
     command: Command,
@@ -20,7 +50,7 @@ impl CommandHandler {
             "LIST" => Command::List,
             "JOIN" => Command::Join,
             "TOPIC" => Command::Topic,
-            "Names" => Command::Names,
+            "NAMES" => Command::Names,
             "PART" => Command::Part,
             "USERS" => Command::Users,
             "PRIVMSG" => Command::PrivateMessage,
@@ -53,11 +83,7 @@ enum Command {
 } 
 
 
-fn set_nickname(context: String) {
-
-}
-
-fn handle_event(tcp_stream: TcpStream) -> std::io::Result<()> {
+fn handle_event(tcp_stream: TcpStream, server: &Server) -> std::io::Result<()> {
     let mut stream = tcp_stream;
     let user_ip = stream.peer_addr().unwrap();
     println!("user joined via ip:port {}", user_ip);
@@ -86,9 +112,8 @@ fn handle_event(tcp_stream: TcpStream) -> std::io::Result<()> {
 
     match handler.command {
         Command::SetNickName => {
-            set_nickname(
-                handler.context
-            )
+            let mut user = User::new(handler.context, user_ip);
+            // server.online_users.push(&mut user);
         },
         _ => !todo!()
     }
@@ -100,8 +125,9 @@ fn main() -> std::io::Result<()> {
     let socket_ip = SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6667);
 
     let listener = TcpListener::bind(socket_ip)?;
+    let server = Server::new();
     for stream in listener.incoming() {
-        handle_event(stream?)?;
+        handle_event(stream?, &server)?;
     }
 
     Ok(())
