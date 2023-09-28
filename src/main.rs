@@ -1,8 +1,8 @@
-use std::net::{TcpListener, TcpStream};
+use std::net::{TcpListener, Ipv4Addr, SocketAddrV4, TcpStream};
+use std::time::Duration;
 
-enum IP {
-    V4,
-    V6,
+struct Server {
+    channels: Vec<Channel>,
 }
 
 struct Client {
@@ -115,7 +115,41 @@ struct Message {
     // BNF stands for: https://zh.wikipedia.org/zh-tw/%E5%B7%B4%E7%A7%91%E6%96%AF%E8%8C%83%E5%BC%8F
 }
 
+struct Command {
 
-fn main() {
+}
 
+struct IRCPackage {
+    // raw binary data from socket
+}
+
+const READ_TIMEOUT: (u64, u32) = (10, 0);
+const WRITE_TIMEOUT: (u64, u32) = (10, 0);
+
+fn handle_event(tcp_stream: TcpStream) -> std::io::Result<()> {
+    let user_ip = tcp_stream.peer_addr().unwrap();
+    println!("user joined via ip:port {}", user_ip);
+    let (r_second, r_micro_second) = READ_TIMEOUT;
+    let (w_second, w_micro_second) = WRITE_TIMEOUT;
+    tcp_stream.set_read_timeout(Some(Duration::new(r_second, r_micro_second)))?;
+    tcp_stream.set_write_timeout(Some(Duration::new(w_second, w_micro_second)))?;
+
+    let mut buf = [0; 128];
+    tcp_stream.peek(&mut buf).expect("peak failed");
+
+    let message = String::from_utf8((&buf).to_vec());
+    dbg!(message.unwrap().trim());
+
+    Ok(())
+}
+
+fn main() -> std::io::Result<()> {
+    let socket_ip = SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6667);
+
+    let listener = TcpListener::bind(socket_ip)?;
+    for stream in listener.incoming() {
+        handle_event(stream?)?;
+    }
+
+    Ok(())
 }
