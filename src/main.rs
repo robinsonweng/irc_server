@@ -1,6 +1,6 @@
 use std::net::{TcpListener, Ipv4Addr, SocketAddrV4, TcpStream};
-use std::task::Context;
 use std::time::Duration;
+use std::io::{Read, Write};
 
 
 const READ_TIMEOUT: (u64, u32) = (10, 0);
@@ -58,19 +58,22 @@ fn set_nickname(context: String) {
 }
 
 fn handle_event(tcp_stream: TcpStream) -> std::io::Result<()> {
-    let user_ip = tcp_stream.peer_addr().unwrap();
+    let mut stream = tcp_stream;
+    let user_ip = stream.peer_addr().unwrap();
     println!("user joined via ip:port {}", user_ip);
 
     let (r_second, r_micro_second) = READ_TIMEOUT;
     let (w_second, w_micro_second) = WRITE_TIMEOUT;
-    tcp_stream.set_read_timeout(Some(Duration::new(r_second, r_micro_second)))?;
-    tcp_stream.set_write_timeout(Some(Duration::new(w_second, w_micro_second)))?;
+    stream.set_read_timeout(Some(Duration::new(r_second, r_micro_second)))?;
+    stream.set_write_timeout(Some(Duration::new(w_second, w_micro_second)))?;
 
-    let mut buf = [0; 128];
-    tcp_stream.peek(&mut buf).expect("peak failed");
+    // tcp_stream.peek(&mut buf).expect("peak failed");
+
+    let mut buf: [u8; 128] = [0; 128];
+    let result = stream.read(&mut buf);
 
     let message = String::from_utf8((&buf).to_vec())
-        .unwrap_or_else(|_| panic!("Cant convert message {:?} to utf-8 from client: {}", &buf, user_ip));
+        .unwrap_or_else(|_| panic!("Cant convert message {:?} to utf-8 from client: {}", &result, user_ip));
 
 
     let (raw_command, raw_context) = message.trim_matches(char::from(0)).split_once(' ').unwrap();
