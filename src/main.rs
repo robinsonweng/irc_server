@@ -1,13 +1,11 @@
-use std::net::{TcpListener, Ipv4Addr, SocketAddrV4, TcpStream};
-use std::time::Duration;
 use std::io::{Read, Write};
+use std::net::{Ipv4Addr, SocketAddrV4, TcpListener, TcpStream};
+use std::net::{Ipv4Addr, SocketAddrV4, TcpListener, TcpStream};
+use std::time::Duration;
+use std::time::Duration;
 
-// from lib
-use irc_server::{Server, User, Command, CommandHandler};
-
-const READ_TIMEOUT: (u64, u32) = (10, 0);
-const WRITE_TIMEOUT: (u64, u32) = (10, 0);
-
+const READ_TIMEOUT: (u64, u32) = (5, 0);
+const WRITE_TIMEOUT: (u64, u32) = (5, 0);
 
 fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<()> {
     let mut stream = tcp_stream;
@@ -21,38 +19,89 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
 
     // tcp_stream.peek(&mut buf).expect("peak failed");
 
-    let mut buf: [u8; 128] = [0; 128];
-    let result = stream.read(&mut buf);
+    loop {
+        let mut buf: [u8; 128] = [0; 128];
+        let result = stream.read(&mut buf);
 
-    let message = String::from_utf8((&buf).to_vec())
-        .unwrap_or_else(|_| panic!("Cant convert message {:?} to utf-8 from client: {}", &result, source_ip));
+        let message = String::from_utf8((&buf).to_vec()).unwrap_or_else(|_| {
+            panic!(
+                "Cant convert message {:?} to utf-8 from client: {}",
+                &result, user_ip
+            )
+        });
 
+        let splited = message.trim_matches(char::from(0)).split_once(' ');
+        let command_tuple: (&str, &str);
+        if let Some(text) = splited {
+            command_tuple = text;
+        } else {
+            break;
+        }
 
-    let (raw_command, raw_context) = message.trim_matches(char::from(0)).split_once(' ').unwrap();
+        let (raw_command, raw_context) = command_tuple;
+        dbg!(raw_command);
+        dbg!(raw_context);
 
-    dbg!(raw_command);
-    dbg!(raw_context);
+        let handler = CommandHandler::new(raw_command, raw_context);
 
-    // find user by ip, if not found, create user
+        // if user not in server list, create new one
+        let mut user = &mut User::new(user_ip);
 
-    let handler = CommandHandler::new(raw_command, raw_context);
-    match handler.command {
-        Command::SetNickName => {
-            server.is_nickname_collision(&handler.context);
-        },
-        _ => !todo!()
+        match handler.command {
+            Command::Capability => {
+                // handle this later, since this is not in rfc, ref: https://ircv3.net/specs/extensions/capability-negotiation.html
+            }
+            Command::SetNickName => {
+                let target = server.find_user_by_ip(user_ip);
+                if target.is_some() {
+                    user = target.unwrap();
+                }
+
+                let nickname = raw_context.to_string();
+                let collision = server.username_is_collision(&nickname);
+                println!("Check if username collision or not: {}", collision);
+                if collision == true {
+                    // same nickname in user exist
+                    break;
+                }
+                user.set_nickname(nickname);
+            }
+            Command::User => {
+                // when user online, send both nickname & realname to server
+
+                // server.user_online(user);
+            }
+            Command::CommandNotFound => println!("Command: {} not found", raw_command),
+            _ => !todo!(),
+        }
     }
     Ok(())
+    // let handler = CommandHandler::new(raw_command, raw_context);
 
+    // match handler.command {
+    //     Command::SetNickName => {
+    //         let user = User::new(handler.context, user_ip);
+    //         server.online_users.push(user);
+    //     }
+    //     Command::Capability => {
+    //         println!("cap cap");
+    //         stream.write(b"123");
+    //     }
+    //     Command::CommandNotFound => {
+    //         println!("What?");
+    //     }
+    //     _ => !todo!(),
+    // }
 }
 
 fn main() -> std::io::Result<()> {
     let socket_ip = SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6667);
 
     let listener = TcpListener::bind(socket_ip)?;
-    let server = &mut Server::new();
+    let mut server = Server::new();
     for stream in listener.incoming() {
-        handle_event(stream?, server)?;
+        handle_event(stream?, &mut server)?;
+        println!("Client Disconnect");
     }
 
     Ok(())
