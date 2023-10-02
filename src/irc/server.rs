@@ -1,4 +1,3 @@
-use crate::irc::response::{IrcError, IrcReply};
 use std::net::SocketAddr;
 
 #[derive(Debug)]

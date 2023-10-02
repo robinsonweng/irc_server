@@ -65,8 +65,8 @@ impl CommandHandler {
         Ok(())
     }
 
-    pub fn new_user(&self) -> Result<IrcReply, IrcError> {
-        todo!()
+    pub fn new_user(&self) -> Result<(), IrcError> {
+        Ok(())
     }
 
     fn ping(&self) {

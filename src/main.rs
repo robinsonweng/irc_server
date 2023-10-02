@@ -5,7 +5,8 @@ use std::time::Duration;
 // from modules
 mod irc;
 use irc::command::{Command, CommandHandler};
-use irc::server::{Server, User};
+use irc::response::{IrcError, IrcReply};
+use irc::server::Server;
 
 const READ_TIMEOUT: (u64, u32) = (10, 0);
 const WRITE_TIMEOUT: (u64, u32) = (10, 0);
@@ -59,8 +60,12 @@ fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<
             Command::SetNickName => {
                 let nickname = &handler.context;
                 match handler.set_nickname(server, &nickname, source_ip) {
-                    Ok(status) => todo!(),
-                    Err(error) => todo!(),
+                    Ok(status) => {}
+                    Err(IrcError::NickCollision) => {
+                        let nick_collision = format!("<nick> :Nickname collision {}", nickname);
+                        stream.write(nick_collision.as_bytes())?;
+                    }
+                    _ => {}
                 }
             }
             Command::User => {
