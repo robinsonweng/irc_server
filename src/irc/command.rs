@@ -65,7 +65,15 @@ impl CommandHandler {
         Ok(())
     }
 
-    pub fn new_user(&self) -> Result<(), IrcError> {
+    pub fn set_realname(&self, server: &mut Server, context: &str) -> Result<(), IrcError> {
+        // parse context, (<nickname> <hostname> <servername> :<realname>)
+        let msg = context.to_string().clone();
+        let msg_parameter = msg.split_whitespace().collect::<Vec<&str>>();
+        let (nickname, hostname, servername, realname) = (msg_parameter[0], msg_parameter[1], msg_parameter[2] , msg_parameter[3]);
+        // find user by nickname
+        // ignore hostname & servername for now
+        // set realname for user
+        server.set_realname_by_nickname(nickname, realname);
         Ok(())
     }
 

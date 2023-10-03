@@ -41,6 +41,7 @@ fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<
         );
 
         let splited = message.trim_matches(char::from(0)).split_once(' ');
+
         let command_tuple: (&str, &str);
         if let Some(text) = splited {
             command_tuple = text;
@@ -58,9 +59,12 @@ fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<
                 // handle this later, since this is not in rfc, ref: https://ircv3.net/specs/extensions/capability-negotiation.html
             }
             Command::SetNickName => {
+                // Introducing new nick or change exist nickname
                 let nickname = &handler.context;
                 match handler.set_nickname(server, &nickname, source_ip) {
-                    Ok(status) => {}
+                    Ok(()) => {
+                        println!("Set ip: {} as nickname: {}", source_ip, &nickname);
+                    }
                     Err(IrcError::NickCollision) => {
                         let nick_collision = format!("<nick> :Nickname collision {}", nickname);
                         stream.write(nick_collision.as_bytes())?;
@@ -70,13 +74,13 @@ fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<
             }
             Command::User => {
                 let context = &handler.context;
-                match handler.new_user() {
-                    Ok(status) => todo!(),
-                    Err(error) => todo!(),
+                match handler.set_realname(server, context) {
+                    Ok(()) => {},
+                    Err(IrcError::NeedMoreParams) => todo!(),
+                    _ => {}
                 }
             }
-            Command::CommandNotFound => println!("Command: {} not found", raw_command),
-            _ => !todo!(),
+            _ => println!("Command: {} not found", raw_command),
         }
     }
     server.user_offline(source_ip);

@@ -76,4 +76,27 @@ impl Server {
         };
         self.online_users.push(user);
     }
+
+    pub fn set_realname_by_nickname(&mut self, nickname: &str, realname: &str) {
+        if realname.is_empty() {}
+        if !realname.starts_with(":") {}
+        let realname = realname.replace(":", "");
+
+        let target_index = &self
+            .online_users
+            .iter()
+            .position(|x| x.nickname == nickname)
+            .unwrap_or_else(|| panic!("nickname: {} not found", nickname));
+
+        let target_user = &mut self.online_users.remove(*target_index);
+        let user = User {
+            nickname: target_user.nickname.clone(),
+            realname: realname.to_string().clone(),
+            belong_topics: target_user.belong_topics.to_owned(),
+            ip: target_user.ip,
+        };
+
+        println!("Set realusername for user: {:?}", user);
+        self.online_users.push(user);
+    }
 }
