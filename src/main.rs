@@ -8,8 +8,8 @@ use irc::command::{Command, CommandHandler};
 use irc::response::{IrcError, IrcReply};
 use irc::server::Server;
 
-const READ_TIMEOUT: (u64, u32) = (10, 0);
-const WRITE_TIMEOUT: (u64, u32) = (10, 0);
+const READ_TIMEOUT: (u64, u32) = (20, 0);
+const WRITE_TIMEOUT: (u64, u32) = (20, 0);
 
 fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<()> {
     let mut stream = tcp_stream;
@@ -63,6 +63,7 @@ fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<
                 let nickname = &handler.context;
                 match handler.set_nickname(server, &nickname, source_ip) {
                     Ok(()) => {
+                        // if user is first set the nickname, response MOTD, ref. rfc1459: 8.5
                         println!("Set ip: {} as nickname: {}", source_ip, &nickname);
                     }
                     Err(IrcError::NickCollision) => {
@@ -75,7 +76,7 @@ fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<
             Command::User => {
                 let context = &handler.context;
                 match handler.set_realname(server, context) {
-                    Ok(()) => {},
+                    Ok(()) => {}
                     Err(IrcError::NeedMoreParams) => todo!(),
                     _ => {}
                 }
