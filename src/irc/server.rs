@@ -9,8 +9,8 @@ pub struct User {
 }
 
 impl User {
-    pub fn new(ip: SocketAddr) -> User {
-        User {
+    pub fn new(ip: SocketAddr) -> Self {
+        Self {
             nickname: String::new(),
             realname: String::new(),
             belong_topics: Vec::new(),
@@ -25,8 +25,8 @@ pub struct Server {
 }
 
 impl Server {
-    pub fn new() -> Server {
-        Server {
+    pub fn new() -> Self {
+        Self {
             online_users: Vec::new(),
             topics: Vec::new(),
         }

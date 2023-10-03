@@ -46,7 +46,7 @@ impl CommandHandler {
 
         // what if message has multiple parameter
         let context = raw_context.clone().to_string().replace("\r\n", "");
-        CommandHandler { command, context }
+        Self { command, context }
     }
 
     pub fn set_nickname(
