@@ -78,8 +78,6 @@ impl Server {
     }
 
     pub fn set_realname_by_nickname(&mut self, nickname: &str, realname: &str) {
-        if realname.is_empty() {}
-        if !realname.starts_with(":") {}
         let realname = realname.replace(":", "");
 
         let target_index = &self
