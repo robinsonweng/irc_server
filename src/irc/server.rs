@@ -116,3 +116,100 @@ impl Server {
         self.online_users.push(user);
     }
 }
+
+#[cfg(test)]
+mod server_unit_tests {
+    use super::*;
+    use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+
+    pub fn setup() -> Server {
+        Server::new()
+    }
+
+    #[test]
+    fn test_user_online() {
+        let server = &mut setup();
+        let socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1234);
+        server.user_online(socket_addr);
+
+        // check if user ip is eq in the vec
+        let online_user = &server
+            .online_users
+            .pop()
+            .expect("I thought you gyus were online?");
+        assert_eq!(*online_user, User::new(socket_addr));
+    }
+
+    #[test]
+    fn test_user_offline() {
+        let server = &mut setup();
+
+        let user_addr1 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1234);
+        let user_addr2 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 5678);
+
+        server.online_users.push(User::new(user_addr1));
+        server.online_users.push(User::new(user_addr2));
+
+        server.user_offline(user_addr1);
+
+        let online_user = &server
+            .online_users
+            .pop()
+            .expect("I thought you guys were online?");
+        assert_eq!(*online_user, User::new(user_addr2));
+    }
+
+    #[test]
+    fn test_nickname_collision() {
+        let server = &mut setup();
+
+        let useraddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1234);
+        let nickname = "Nick";
+        let user = User {
+            nickname: String::from(nickname),
+            realname: String::new(),
+            belong_topics: Vec::new(),
+            ip: useraddr,
+        };
+        server.online_users.push(user);
+
+        assert_eq!(server.is_nickname_collision(nickname), true);
+    }
+
+    #[test]
+    fn test_set_user_nickname_by_ip() {
+        let server = &mut setup();
+
+        let useraddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1234);
+        let user = User::new(useraddr);
+        server.online_users.push(user);
+
+        let nickname = "Nick";
+        server.set_user_nickname_by_ip(useraddr, nickname);
+
+        let target_user = server.online_users.pop().expect("Didn't you guys online?");
+        assert_eq!(target_user.nickname, nickname);
+    }
+
+    #[test]
+    fn test_set_realname_by_nickname() {
+        let server = &mut setup();
+
+        let useraddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1234);
+
+        let nickname = "Nick";
+        let realname = "Nick Hansome";
+        let user = User {
+            nickname: String::from(nickname),
+            realname: String::new(),
+            belong_topics: Vec::new(),
+            ip: useraddr,
+        };
+
+        server.online_users.push(user);
+        server.set_realname_by_nickname(nickname, realname);
+
+        let target_user = server.online_users.pop().expect("Didn't you guys online?");
+        assert_eq!(target_user.realname, realname);
+    }
+}
