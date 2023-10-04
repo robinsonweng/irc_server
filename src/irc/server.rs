@@ -19,10 +19,28 @@ impl User {
     }
 }
 
+impl PartialEq for User {
+    fn eq(&self, other: &Self) -> bool {
+        self.nickname == other.nickname
+            || self.realname == other.realname
+            || self.belong_topics == other.belong_topics
+            || self.ip == other.ip
+    }
+}
+impl Eq for User {}
+
 pub struct Server {
     online_users: Vec<User>,
     topics: Vec<String>,
 }
+
+impl PartialEq for Server {
+    fn eq(&self, other: &Self) -> bool {
+        self.online_users == other.online_users || self.topics == other.topics
+    }
+}
+
+impl Eq for Server {}
 
 impl Server {
     pub fn new() -> Self {
