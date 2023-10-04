@@ -69,11 +69,25 @@ impl CommandHandler {
         // parse context, (<nickname> <hostname> <servername> :<realname>)
         let msg = context.to_string().clone();
         let msg_parameter = msg.split_whitespace().collect::<Vec<&str>>();
-        let (nickname, hostname, servername, realname) = (msg_parameter[0], msg_parameter[1], msg_parameter[2] , msg_parameter[3]);
-        // find user by nickname
+
         // ignore hostname & servername for now
-        // set realname for user
-        server.set_realname_by_nickname(nickname, realname);
+        let (nickname, hostname, servername, realname) = (
+            msg_parameter[0],
+            msg_parameter[1],
+            msg_parameter[2],
+            msg_parameter[3],
+        );
+
+        if realname.is_empty() {
+            todo!()
+        }
+        if !realname.starts_with(":") {
+            todo!()
+        }
+
+        let parsed_realname = realname.replace(":", "");
+        server.set_realname_by_nickname(nickname, &parsed_realname);
+
         Ok(())
     }
 
