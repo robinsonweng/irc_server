@@ -80,13 +80,16 @@ impl Server {
         false
     }
 
-    pub fn set_user_nickname_by_ip(&mut self, source_ip: SocketAddr, nickname: &str) {
-        let name = nickname.to_string().clone();
+    pub fn is_new_user(&mut self, source_ip: SocketAddr) -> bool {
         let index = &self
             .online_users
             .iter()
             .position(|x| x.ip == source_ip)
             .unwrap_or_else(|| panic!("Cant find user by ip: {:?}", source_ip));
+        let target = &mut self.online_users.remove(*index);
+
+        target.is_newbie
+    }
 
         let target = &mut self.online_users.remove(*index);
         let user = User {
