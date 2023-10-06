@@ -1,3 +1,4 @@
+use crate::irc::response::{IrcError, IrcReply};
 use std::net::SocketAddr;
 
 #[derive(Debug)]
@@ -91,6 +92,22 @@ impl Server {
         target.is_newbie
     }
 
+    pub fn set_user_nickname_by_ip(
+        &mut self,
+        source_ip: SocketAddr,
+        nickname: &str,
+    ) -> Result<(), IrcError> {
+        // check if nickname collision in server
+        if self.is_nickname_collision(nickname) {
+            return Err(IrcError::NickCollision);
+        }
+
+        let name = nickname.to_string().clone();
+        let index = &self
+            .online_users
+            .iter()
+            .position(|x| x.ip == source_ip)
+            .unwrap_or_else(|| panic!("Cant find user by ip: {:?}", source_ip));
         let target = &mut self.online_users.remove(*index);
         let user = User {
             nickname: name,
@@ -99,7 +116,10 @@ impl Server {
             belong_topics: target.belong_topics.to_owned(),
             ip: target.ip,
         };
+
         self.online_users.push(user);
+
+        Ok(())
     }
 
     pub fn set_realname_by_nickname(&mut self, nickname: &str, realname: &str) {
@@ -194,7 +214,9 @@ mod server_unit_tests {
         server.online_users.push(user);
 
         let nickname = "Nick";
-        server.set_user_nickname_by_ip(useraddr, nickname);
+        server
+            .set_user_nickname_by_ip(useraddr, nickname)
+            .expect("Bro why there is same nickname in test");
 
         let target_user = server.online_users.pop().expect("Didn't you guys online?");
         assert_eq!(target_user.nickname, nickname);
