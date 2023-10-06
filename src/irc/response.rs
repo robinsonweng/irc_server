@@ -16,7 +16,7 @@ pub enum IrcReply {
     EndOfMOTD = 376,
     UsersStart = 392,
     Users = 393,
-    EndOfUsers = 394
+    EndOfUsers = 394,
 }
 
 impl IrcReply {
@@ -28,6 +28,7 @@ impl IrcReply {
     }
 }
 
+#[derive(Debug)]
 pub enum IrcError {
     NoSuchNick = 401,
     NoSuchChannel = 403,
