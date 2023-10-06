@@ -4,6 +4,7 @@ use std::net::SocketAddr;
 pub struct User {
     nickname: String,
     realname: String,
+    is_newbie: bool,
     belong_topics: Vec<String>,
     ip: SocketAddr,
 }
@@ -13,6 +14,7 @@ impl User {
         Self {
             nickname: String::new(),
             realname: String::new(),
+            is_newbie: true,
             belong_topics: Vec::new(),
             ip,
         }
@@ -24,6 +26,7 @@ impl PartialEq for User {
         self.nickname == other.nickname
             || self.realname == other.realname
             || self.belong_topics == other.belong_topics
+            || self.is_newbie == other.is_newbie
             || self.ip == other.ip
     }
 }
@@ -89,6 +92,7 @@ impl Server {
         let user = User {
             nickname: name,
             realname: target.realname.clone(),
+            is_newbie: target.is_newbie,
             belong_topics: target.belong_topics.to_owned(),
             ip: target.ip,
         };
@@ -108,6 +112,7 @@ impl Server {
         let user = User {
             nickname: target_user.nickname.clone(),
             realname: realname.to_string().clone(),
+            is_newbie: target_user.is_newbie,
             belong_topics: target_user.belong_topics.to_owned(),
             ip: target_user.ip,
         };
@@ -168,6 +173,7 @@ mod server_unit_tests {
         let user = User {
             nickname: String::from(nickname),
             realname: String::new(),
+            is_newbie: true,
             belong_topics: Vec::new(),
             ip: useraddr,
         };
@@ -202,6 +208,7 @@ mod server_unit_tests {
         let user = User {
             nickname: String::from(nickname),
             realname: String::new(),
+            is_newbie: true,
             belong_topics: Vec::new(),
             ip: useraddr,
         };
