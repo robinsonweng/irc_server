@@ -92,6 +92,8 @@ impl Server {
         target.is_newbie
     }
 
+    pub fn find_user_by_ip() {}
+
     pub fn set_user_nickname_by_ip(
         &mut self,
         source_ip: SocketAddr,
