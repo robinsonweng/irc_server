@@ -54,15 +54,15 @@ impl CommandHandler {
         server: &mut Server,
         nickname: &str,
         source_ip: SocketAddr,
-    ) -> Result<(), IrcError> {
-        // check if nickname collision in server
-        if server.is_nickname_collision(nickname) {
-            return Err(IrcError::NickCollision);
-        }
-
+    ) -> Option<String> {
         // set nickname by finding user using ip
-        server.set_user_nickname_by_ip(source_ip, nickname);
-        Ok(())
+        let result = server.set_user_nickname_by_ip(source_ip, nickname);
+
+        match result {
+            Ok(()) => None,
+            Err(IrcError::NickCollision) => Some(format!("{} :Nickname collision KILL", nickname)),
+            _ => panic!("set nickname didn't match any rpl or err"),
+        }
     }
 
     pub fn set_realname(&self, server: &mut Server, context: &str) -> Result<(), IrcError> {

@@ -10,10 +10,16 @@ use irc::server::Server;
 
 const READ_TIMEOUT: (u64, u32) = (20, 0);
 const WRITE_TIMEOUT: (u64, u32) = (20, 0);
+const HOST_NAME: &'static str = "coool";
+
+fn msg_prefix(numeric: u8, nickname: &str, msg: &str) -> String {
+    format!(":{} {} {} {}\r\n", HOST_NAME, numeric, nickname, msg)
+}
 
 fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<()> {
     let mut stream = tcp_stream;
     let source_ip = stream.peer_addr()?;
+    let host_ip = stream.local_addr()?;
 
     let (r_second, r_micro_second) = READ_TIMEOUT;
     let (w_second, w_micro_second) = WRITE_TIMEOUT;
@@ -61,17 +67,33 @@ fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<
             Command::SetNickName => {
                 // Introducing new nick or change exist nickname
                 let nickname = &handler.context;
-                match handler.set_nickname(server, &nickname, source_ip) {
-                    Ok(()) => {
-                        // if user is first set the nickname, response MOTD, ref. rfc1459: 8.5
-                        println!("Set ip: {} as nickname: {}", source_ip, &nickname);
+                let is_newbie = server.is_new_user(source_ip);
+                let error_msg = handler.set_nickname(server, nickname, source_ip);
+
+                if !is_newbie {
+                    if error_msg.is_some() {
+                        stream.write(error_msg.unwrap().as_bytes())?;
+                    } else {
+                        break;
                     }
-                    Err(IrcError::NickCollision) => {
-                        let nick_collision = format!("<nick> :Nickname collision {}", nickname);
-                        stream.write(nick_collision.as_bytes())?;
-                    }
-                    _ => {}
                 }
+
+                // rfc 1459 8.5 Establishing a server to client connection
+                // 1. send MOTD
+                // 2. LUSER
+                // 3. server return its name & version
+                // 4. USER
+                // 5. NICK with dns information?
+                let motd_start = format!(":- {:?} Message of the day - ", HOST_NAME);
+                let motd_msg = format!(":- yoyo three to the one");
+                let motd_end = ":End of /MOTD command".to_string();
+                stream.write(
+                    &msg_prefix(IrcReply::MOTDStart as u8, nickname, &motd_start).as_bytes(),
+                )?;
+                stream.write(&msg_prefix(IrcReply::MOTD as u8, nickname, &motd_msg).as_bytes())?;
+                stream.write(
+                    &msg_prefix(IrcReply::EndOfMOTD as u8, nickname, &motd_end).as_bytes(),
+                )?;
             }
             Command::User => {
                 let context = &handler.context;
