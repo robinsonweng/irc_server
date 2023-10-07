@@ -78,6 +78,7 @@ impl Server {
                 return true;
             }
         }
+
         false
     }
 
@@ -87,9 +88,8 @@ impl Server {
             .iter()
             .position(|x| x.ip == source_ip)
             .unwrap_or_else(|| panic!("Cant find user by ip: {:?}", source_ip));
-        let target = &mut self.online_users.remove(*index);
 
-        target.is_newbie
+        self.online_users[*index].is_newbie
     }
 
     pub fn find_user_by_ip() {}
@@ -111,6 +111,7 @@ impl Server {
             .position(|x| x.ip == source_ip)
             .unwrap_or_else(|| panic!("Cant find user by ip: {:?}", source_ip));
         let target = &mut self.online_users.remove(*index);
+
         let user = User {
             nickname: name,
             realname: target.realname.clone(),
