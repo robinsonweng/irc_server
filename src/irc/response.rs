@@ -4,16 +4,20 @@ pub enum IrcReply {
     Created = 3,
     MyInfo = 4,
     IsSupport = 5,
+
     ListStart = 321,
     List = 322,
     Listend = 323,
+
     NoTopic = 331,
     Topic = 332,
     NamReply = 353,
     EndOfNames = 366,
+
     MOTD = 372,
     MOTDStart = 375,
     EndOfMOTD = 376,
+
     UsersStart = 392,
     Users = 393,
     EndOfUsers = 394,
