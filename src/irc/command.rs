@@ -20,13 +20,12 @@ pub enum Command {
     CommandNotFound,
 }
 
-#[derive(Debug)]
-pub struct CommandHandler {
+pub struct CommandParser {
     pub command: Command,
     pub context: String,
 }
 
-impl CommandHandler {
+impl CommandParser {
     pub fn new(raw_command: &str, raw_context: &str) -> Self {
         let command = match raw_command {
             "NICK" => Command::SetNickName,
@@ -48,7 +47,12 @@ impl CommandHandler {
         let context = raw_context.clone().to_string().replace("\r\n", "");
         Self { command, context }
     }
+}
 
+#[derive(Debug)]
+pub struct CommandHandler {}
+
+impl CommandHandler {
     pub fn set_nickname(
         &self,
         server: &mut Server,

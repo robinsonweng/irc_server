@@ -4,7 +4,7 @@ use std::time::Duration;
 
 // from modules
 mod irc;
-use irc::command::{Command, CommandHandler};
+use irc::command::{Command, CommandHandler, CommandParser};
 use irc::response::{IrcError, IrcReply};
 use irc::server::Server;
 
@@ -56,17 +56,19 @@ fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<
         }
 
         let (raw_command, raw_context) = command_tuple;
-        let handler = CommandHandler::new(raw_command, raw_context);
+        let parser = CommandParser::new(raw_command, raw_context);
+
+        let handler = CommandHandler {};
 
         // if user not in server list, create new one
 
-        match handler.command {
+        match parser.command {
             Command::Capability => {
                 // handle this later, since this is not in rfc, ref: https://ircv3.net/specs/extensions/capability-negotiation.html
             }
             Command::SetNickName => {
                 // Introducing new nick or change exist nickname
-                let nickname = &handler.context;
+                let nickname = &parser.context;
                 let is_newbie = server.is_new_user(source_ip);
                 let error_msg = handler.set_nickname(server, nickname, source_ip);
 
@@ -87,6 +89,7 @@ fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<
                 let motd_start = format!(":- {:?} Message of the day - ", HOST_NAME);
                 let motd_msg = format!(":- yoyo three to the one");
                 let motd_end = ":End of /MOTD command".to_string();
+
                 stream.write(
                     &msg_prefix(IrcReply::MOTDStart as u8, nickname, &motd_start).as_bytes(),
                 )?;
@@ -95,8 +98,9 @@ fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<
                     &msg_prefix(IrcReply::EndOfMOTD as u8, nickname, &motd_end).as_bytes(),
                 )?;
             }
+
             Command::User => {
-                let context = &handler.context;
+                let context = &parser.context;
                 match handler.set_realname(server, context) {
                     Ok(()) => {}
                     Err(IrcError::NeedMoreParams) => todo!(),
