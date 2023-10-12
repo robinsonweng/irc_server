@@ -1,11 +1,18 @@
 use crate::irc::response::{IrcError, IrcReply};
 use std::net::SocketAddr;
 
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum UserStatus {
+    Online,
+    Offline,
+    UnRegister,
+}
+
 #[derive(Debug)]
 pub struct User {
     nickname: String,
     realname: String,
-    is_newbie: bool,
+    status: UserStatus,
     belong_topics: Vec<String>,
     ip: SocketAddr,
 }
@@ -15,7 +22,7 @@ impl User {
         Self {
             nickname: String::new(),
             realname: String::new(),
-            is_newbie: true,
+            status: UserStatus::UnRegister,
             belong_topics: Vec::new(),
             ip,
         }
@@ -27,7 +34,7 @@ impl PartialEq for User {
         self.nickname == other.nickname
             || self.realname == other.realname
             || self.belong_topics == other.belong_topics
-            || self.is_newbie == other.is_newbie
+            || self.status == other.status
             || self.ip == other.ip
     }
 }
@@ -82,14 +89,14 @@ impl Server {
         false
     }
 
-    pub fn is_new_user(&mut self, source_ip: SocketAddr) -> bool {
+    pub fn get_user_status(&mut self, source_ip: SocketAddr) -> UserStatus {
         let index = &self
             .online_users
             .iter()
             .position(|x| x.ip == source_ip)
             .unwrap_or_else(|| panic!("Cant find user by ip: {:?}", source_ip));
 
-        self.online_users[*index].is_newbie
+        self.online_users[*index].status
     }
 
     pub fn find_user_by_ip() {}
@@ -115,7 +122,7 @@ impl Server {
         let user = User {
             nickname: name,
             realname: target.realname.clone(),
-            is_newbie: target.is_newbie,
+            status: target.status,
             belong_topics: target.belong_topics.to_owned(),
             ip: target.ip,
         };
@@ -138,7 +145,7 @@ impl Server {
         let user = User {
             nickname: target_user.nickname.clone(),
             realname: realname.to_string().clone(),
-            is_newbie: target_user.is_newbie,
+            status: target_user.status,
             belong_topics: target_user.belong_topics.to_owned(),
             ip: target_user.ip,
         };
@@ -199,7 +206,7 @@ mod server_unit_tests {
         let user = User {
             nickname: String::from(nickname),
             realname: String::new(),
-            is_newbie: true,
+            status: UserStatus::UnRegister,
             belong_topics: Vec::new(),
             ip: useraddr,
         };
@@ -236,7 +243,7 @@ mod server_unit_tests {
         let user = User {
             nickname: String::from(nickname),
             realname: String::new(),
-            is_newbie: true,
+            status: UserStatus::UnRegister,
             belong_topics: Vec::new(),
             ip: useraddr,
         };
