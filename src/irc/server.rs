@@ -87,37 +87,6 @@ impl Server {
                 return true;
             }
         }
-
-        false
-    }
-
-    pub fn is_user_online(&mut self, source_ip: SocketAddr) -> bool {
-        let index = &self
-            .online_users
-            .iter()
-            .position(|x| x.ip == source_ip)
-            .unwrap_or_else(|| panic!("Cant find user by ip: {:?}", source_ip));
-
-        match self.online_users[*index].status {
-            UserStatus::Online => {
-                return true;
-            }
-            _ => {
-                return false;
-            }
-        }
-    }
-
-    pub fn is_nick_empty(&mut self, source_ip: SocketAddr) -> bool {
-        let index = &self
-            .online_users
-            .iter()
-            .position(|x| x.ip == source_ip)
-            .unwrap_or_else(|| panic!("Cant find user by ip: {}", source_ip));
-
-        if self.online_users[*index].nickname.is_empty() {
-            return true;
-        }
         false
     }
 
@@ -160,7 +129,6 @@ impl Server {
         self.online_users.push(user);
     }
 
-    pub fn find_user_by_ip() {}
 
     pub fn set_user_nickname_by_ip(
         &mut self,
@@ -193,9 +161,6 @@ impl Server {
 
         Ok(())
     }
-
-    pub fn set_realname_by_nickname(&mut self, nickname: &str, realname: &str) {
-        let realname = realname.replace(":", "");
 
         let target_index = &self
             .online_users
