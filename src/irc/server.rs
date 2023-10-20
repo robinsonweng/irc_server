@@ -100,17 +100,17 @@ impl Server {
         self.online_users[*index].status
     }
 
-    pub fn get_user_nick(&mut self, source_ip: SocketAddr) -> &str {
+    pub fn get_user_nick(&mut self, source_ip: SocketAddr) -> String {
         let index = &self
             .online_users
             .iter()
             .position(|x| x.ip == source_ip)
             .unwrap_or_else(|| panic!("Cant find user by ip {:?}", source_ip));
 
-        &self.online_users[*index].nickname
+        self.online_users[*index].nickname.clone()
     }
 
-    pub fn set_user_status(&mut self, source_ip: SocketAddr, status: UserStatus) {
+    pub fn set_user_status_by_ip(&mut self, source_ip: SocketAddr, status: UserStatus) {
         let index = &self
             .online_users
             .iter()
@@ -279,7 +279,7 @@ mod server_unit_tests {
         };
 
         server.online_users.push(user);
-        server.set_realname_by_nickname(nickname, realname);
+        server.set_realname_by_ip(useraddr, realname);
 
         let target_user = server.online_users.pop().expect("Didn't you guys online?");
         assert_eq!(target_user.realname, realname);
