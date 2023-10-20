@@ -139,6 +139,24 @@ impl Server {
         &self.online_users[*index].nickname
     }
 
+    pub fn set_user_status(&mut self, source_ip: SocketAddr, status: UserStatus) {
+        let index = &self
+            .online_users
+            .iter()
+            .position(|x| x.ip == source_ip)
+            .unwrap_or_else(|| panic!("Cant find user by ip"));
+
+        let target = &mut self.online_users.remove(*index);
+        let user = User {
+            nickname: target.nickname.clone(),
+            realname: target.realname.clone(),
+            status: status,
+            belong_topics: target.belong_topics.to_owned(),
+            ip: target.ip,
+        };
+        self.online_users.push(user);
+    }
+
     pub fn find_user_by_ip() {}
 
     pub fn set_user_nickname_by_ip(
