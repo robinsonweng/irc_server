@@ -1,22 +1,23 @@
 use std::io::{Read, Write};
 use std::net::{Ipv4Addr, SocketAddrV4, TcpListener, TcpStream};
+use std::thread::sleep;
 use std::time::Duration;
 
 // from modules
 mod irc;
 use irc::command::{Command, CommandHandler, CommandParser};
 use irc::response::{IrcError, IrcReply};
-use irc::server::Server;
+use irc::server::{Server, UserStatus};
 
 const READ_TIMEOUT: (u64, u32) = (20, 0);
 const WRITE_TIMEOUT: (u64, u32) = (20, 0);
-const HOST_NAME: &'static str = "coool";
+const HOST_NAME: &'static str = "localhost";
 
-fn msg_prefix(numeric: u8, nickname: &str, msg: &str) -> String {
+fn msg_prefix(numeric: u16, nickname: &str, msg: &str) -> String {
     format!(":{} {} {} {}\r\n", HOST_NAME, numeric, nickname, msg)
 }
 
-fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<()> {
+fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<()> {
     let mut stream = tcp_stream;
     let source_ip = stream.peer_addr()?;
     let host_ip = stream.local_addr()?;
@@ -28,23 +29,16 @@ fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<
 
     server.user_online(source_ip);
 
-    // tcp_stream.peek(&mut buf).expect("peak failed");
-
     loop {
         let mut buf: [u8; 128] = [0; 128];
-        let result = stream.read(&mut buf);
+        let raw_message = stream.read(&mut buf);
 
         let message = String::from_utf8((&buf).to_vec()).unwrap_or_else(|_| {
             panic!(
                 "Cant convert message {:?} to utf-8 from client: {}",
-                &result, source_ip,
+                &raw_message, source_ip,
             )
         });
-
-        println!(
-            "{}",
-            message.to_string().trim_matches(char::from(0)).clone()
-        );
 
         let splited = message.trim_matches(char::from(0)).split_once(' ');
 
@@ -60,57 +54,92 @@ fn handle_event(tcp_stream: &TcpStream, server: &mut Server) -> std::io::Result<
 
         let handler = CommandHandler {};
 
-        // if user not in server list, create new one
+        // if first user detected in NICK command, wait untill user occor
+        // unless timeout or offline
+        // create user here
+        // both username & realname should set, the user then can register as online
+
+        // ALSO, you don't struct Server, since this code only accept single thread currently
+        // the struct User should handle single thread scenario perfectly
 
         match parser.command {
             Command::Capability => {
-                // handle this later, since this is not in rfc, ref: https://ircv3.net/specs/extensions/capability-negotiation.html
+                // handle this later, since this is not in rfc
+                // ref: https://ircv3.net/specs/extensions/capability-negotiation.html
+                println!("this is CAP command");
             }
             Command::SetNickName => {
-                // Introducing new nick or change exist nickname
-                let nickname = &parser.context;
-                let is_newbie = server.is_new_user(source_ip);
-                let error_msg = handler.set_nickname(server, nickname, source_ip);
+                println!("this is NICK command");
 
-                if !is_newbie {
-                    if error_msg.is_some() {
-                        stream.write(error_msg.unwrap().as_bytes())?;
-                    } else {
-                        break;
+                let nickname = &parser.context;
+                let set_nick_result = handler.set_nickname(server, nickname, source_ip);
+                let msg = match set_nick_result {
+                    Ok(()) => None,
+                    Err(IrcError::NickCollision) => {
+                        Some(format!("{} :Nickname collision KILL", nickname))
                     }
+                    _ => panic!("set nickname didn't match any rpl or err"),
+                };
+
+                if msg.is_some() {
+                    // return error message
+                    break;
                 }
 
-                // rfc 1459 8.5 Establishing a server to client connection
-                // 1. send MOTD
-                // 2. LUSER
-                // 3. server return its name & version
-                // 4. USER
-                // 5. NICK with dns information?
-                let motd_start = format!(":- {:?} Message of the day - ", HOST_NAME);
-                let motd_msg = format!(":- yoyo three to the one");
-                let motd_end = ":End of /MOTD command".to_string();
+                let wellcome = format!(
+                    ":{} 001 robinson :Welcome to the WeeChat IRC server\r\n",
+                    HOST_NAME
+                );
+                stream.write(wellcome.as_bytes())?;
 
-                stream.write(
-                    &msg_prefix(IrcReply::MOTDStart as u8, nickname, &motd_start).as_bytes(),
-                )?;
-                stream.write(&msg_prefix(IrcReply::MOTD as u8, nickname, &motd_msg).as_bytes())?;
-                stream.write(
-                    &msg_prefix(IrcReply::EndOfMOTD as u8, nickname, &motd_end).as_bytes(),
-                )?;
+                let yourhost = format!(
+                    ":{} 002 robinson :Your host is weercd, running version 1.0.0-dev\r\n",
+                    HOST_NAME
+                );
+                stream.write(yourhost.as_bytes())?;
+
+                let created = format!(
+                    ":{} 003 robinson :Are you solid like a rock?\r\n",
+                    HOST_NAME
+                );
+                stream.write(created.as_bytes())?;
+
+                let myinfo = format!(":{} 004 robinson :Let's see!\r\n", HOST_NAME);
+                stream.write(myinfo.as_bytes())?;
             }
 
             Command::User => {
-                let context = &parser.context;
-                match handler.set_realname(server, context) {
-                    Ok(()) => {}
-                    Err(IrcError::NeedMoreParams) => todo!(),
-                    _ => {}
+                println!("this is USER command");
+                // nick should first
+                if handler.is_nick_empty(server, source_ip) {
+                    println!("nick is empty");
+                    break;
                 }
+
+                // if !handler.is_user_online(server, source_ip) {
+                //     break;
+                // }
+                handler.set_user_status(server, source_ip, UserStatus::Online);
+                // ERR_NEEDMOREPARAMS
+                // ERR_ALREADYREGISTRED
             }
+
+            Command::Pong => {}
             _ => println!("Command: {} not found", raw_command),
         }
+        // if no response from ping, server view user as offline
+        // if handler.is_user_online(server, source_ip) {
+        //     let ping_msg = handler.ping(server, source_ip);
+        //     stream.write(ping_msg.as_bytes())?;
+
+        // ping from server
+        // let ping_msg = format!("PING :{}\r\n", HOST_NAME);
+        // stream.write(ping_msg.as_bytes())?;
     }
+
+    // notice: user timeout or offline
     server.user_offline(source_ip);
+
     Ok(())
 }
 
@@ -121,7 +150,7 @@ fn main() -> std::io::Result<()> {
     let mut server = Server::new();
     for stream in listener.incoming() {
         let client = stream?;
-        handle_event(&client, &mut server)?;
+        handle_event(client, &mut server)?;
     }
 
     Ok(())
