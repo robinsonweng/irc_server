@@ -11,6 +11,7 @@ pub enum UserStatus {
 #[derive(Debug)]
 pub struct User {
     nickname: String,
+    username: String,
     realname: String,
     status: UserStatus,
     belong_topics: Vec<String>,
@@ -21,6 +22,7 @@ impl User {
     pub fn new(ip: SocketAddr) -> Self {
         Self {
             nickname: String::new(),
+            username: String::new(),
             realname: String::new(),
             status: UserStatus::UnRegister,
             belong_topics: Vec::new(),
@@ -149,6 +151,7 @@ impl Server {
         let target = &mut self.online_users.remove(*index);
         let user = User {
             nickname: target.nickname.clone(),
+            username: target.username.clone(),
             realname: target.realname.clone(),
             status: status,
             belong_topics: target.belong_topics.to_owned(),
@@ -179,6 +182,7 @@ impl Server {
 
         let user = User {
             nickname: name,
+            username: target.username.clone(),
             realname: target.realname.clone(),
             status: target.status,
             belong_topics: target.belong_topics.to_owned(),
@@ -202,6 +206,7 @@ impl Server {
         let target_user = &mut self.online_users.remove(*target_index);
         let user = User {
             nickname: target_user.nickname.clone(),
+            username: target_user.username.clone(),
             realname: realname.to_string().clone(),
             status: target_user.status,
             belong_topics: target_user.belong_topics.to_owned(),
@@ -263,6 +268,7 @@ mod server_unit_tests {
         let nickname = "Nick";
         let user = User {
             nickname: String::from(nickname),
+            username: String::new(),
             realname: String::new(),
             status: UserStatus::UnRegister,
             belong_topics: Vec::new(),
@@ -300,6 +306,7 @@ mod server_unit_tests {
         let realname = "Nick Hansome";
         let user = User {
             nickname: String::from(nickname),
+            username: String::new(),
             realname: String::new(),
             status: UserStatus::UnRegister,
             belong_topics: Vec::new(),
