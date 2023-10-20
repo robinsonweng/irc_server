@@ -129,6 +129,22 @@ impl Server {
         self.online_users.push(user);
     }
 
+    pub fn is_user_ready_to_register(&mut self, source_ip: SocketAddr) -> bool {
+        let index = &self
+            .online_users
+            .iter()
+            .position(|x| x.ip == source_ip)
+            .unwrap_or_else(|| panic!("Cant find user by ip {:?}", source_ip));
+
+        // is username && nickname is set && status == unregister
+        if !&self.online_users[*index].nickname.is_empty()
+            && !&self.online_users[*index].realname.is_empty()
+            && (self.online_users[*index].status == UserStatus::UnRegister)
+        {
+            return true;
+        }
+        false
+    }
 
     pub fn set_user_nickname_by_ip(
         &mut self,
