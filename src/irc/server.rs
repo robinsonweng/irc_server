@@ -89,6 +89,22 @@ impl Server {
         false
     }
 
+    pub fn is_user_online(&mut self, source_ip: SocketAddr) -> bool {
+        let index = &self
+            .online_users
+            .iter()
+            .position(|x| x.ip == source_ip)
+            .unwrap_or_else(|| panic!("Cant find user by ip: {:?}", source_ip));
+
+        match self.online_users[*index].status {
+            UserStatus::Online => {
+                return true;
+            }
+            _ => {
+                return false;
+            }
+        }
+    }
     pub fn get_user_status(&mut self, source_ip: SocketAddr) -> UserStatus {
         let index = &self
             .online_users
