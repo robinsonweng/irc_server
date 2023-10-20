@@ -129,6 +129,16 @@ impl Server {
         self.online_users[*index].status
     }
 
+    pub fn get_user_nick(&mut self, source_ip: SocketAddr) -> &str {
+        let index = &self
+            .online_users
+            .iter()
+            .position(|x| x.ip == source_ip)
+            .unwrap_or_else(|| panic!("Cant find user by ip {:?}", source_ip));
+
+        &self.online_users[*index].nickname
+    }
+
     pub fn find_user_by_ip() {}
 
     pub fn set_user_nickname_by_ip(
