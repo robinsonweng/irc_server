@@ -1,3 +1,4 @@
+#[derive(Debug, Clone, Copy)]
 pub enum IrcReply {
     Welcome = 1,
     YourHost = 2,
@@ -23,16 +24,7 @@ pub enum IrcReply {
     EndOfUsers = 394,
 }
 
-impl IrcReply {
-    pub fn from_usize(&self, status: usize) -> IrcReply {
-        match status {
-            393 => IrcReply::Users,
-            _ => panic!("IRC Reply status code not found"),
-        }
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum IrcError {
     NoSuchNick = 401,
     NoSuchChannel = 403,
@@ -42,17 +34,21 @@ pub enum IrcError {
     NickCollision = 436,
     NeedMoreParams = 461,
     AlreadyRegistred = 462,
-    BadRequest = 800,
-    InternalError = 900,
 }
 
-impl IrcError {
-    pub fn from_usize(&self, status: usize) -> IrcError {
-        match status {
-            436 => IrcError::NickCollision,
-            461 => IrcError::NeedMoreParams,
-            462 => IrcError::AlreadyRegistred,
-            _ => panic!("IRC Errorstatus code not found"),
-        }
+pub trait IrcResponse {
+    fn to_message(&self, hostname: &str, nickname: &str, body: &str) -> String {
+        todo!()
+    }
+}
+
+impl IrcResponse for IrcReply {
+    fn to_message(&self, hostname: &str, nickname: &str, body: &str) -> String {
+        format!(":{} {:3} {} {}\r\n", hostname, *self as u16, nickname, body)
+    }
+}
+impl IrcResponse for IrcError {
+    fn to_message(&self, hostname: &str, nickname: &str, body: &str) -> String {
+        format!(":{} {:3} {} {}\r\n", hostname, *self as u16, nickname, body)
     }
 }
