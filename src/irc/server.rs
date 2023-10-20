@@ -105,6 +105,20 @@ impl Server {
             }
         }
     }
+
+    pub fn is_nick_empty(&mut self, source_ip: SocketAddr) -> bool {
+        let index = &self
+            .online_users
+            .iter()
+            .position(|x| x.ip == source_ip)
+            .unwrap_or_else(|| panic!("Cant find user by ip: {}", source_ip));
+
+        if self.online_users[*index].nickname.is_empty() {
+            return true;
+        }
+        false
+    }
+
     pub fn get_user_status(&mut self, source_ip: SocketAddr) -> UserStatus {
         let index = &self
             .online_users
