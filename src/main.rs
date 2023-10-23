@@ -60,20 +60,24 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
         match parser.command {
             Command::SetNickName => {
                 println!("this is NICK command");
+                println!("raw command: {}", raw_command);
+                println!("raw context: {}", raw_context);
 
-                let nickname = &parser.context;
-                let set_nick_result = handler.set_nickname(server, nickname, source_ip);
+                let nickname = parser.context.clone();
+                let set_nick_result = handler.set_nickname(server, &nickname, source_ip);
                 let msg = match set_nick_result {
                     Ok(()) => None,
                     Err(IrcError::NickCollision) => {
-                        Some(format!("{} :Nickname collision KILL", nickname))
+                        Some(format!("{} :Nickname collision KILL\r\n", nickname))
                     }
+                    // ERR_NONICKNAMEGIVEN
                     _ => panic!("set nickname didn't match any rpl or err"),
                 };
 
                 if msg.is_some() {
-                    // return error message
-                    break;
+                    // ERR_NICKCOLLISION
+                    stream.write(msg.unwrap().as_bytes())?;
+                    continue;
                 }
 
                 let wellcome = format!(
@@ -100,31 +104,34 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
 
             Command::User => {
                 println!("this is USER command");
-                // nick should first
-                if handler.is_nick_empty(server, source_ip) {
-                    println!("nick is empty");
-                    break;
-                }
+                println!("command raw: {}", raw_command);
+                println!("raw context: {}", raw_context.clone());
 
-                // if !handler.is_user_online(server, source_ip) {
-                //     break;
-                // }
-                handler.set_user_status(server, source_ip, UserStatus::Online);
-                // ERR_NEEDMOREPARAMS
-                // ERR_ALREADYREGISTRED
+                let context = raw_context.clone().replace("\r\n", "");
+                let context_collection = context.split(' ').collect::<Vec<&str>>();
+                if let [username, hostname, servername, realname] = &context_collection[..] {
+                    if !realname.starts_with(":") {
+                        // syntax error here
+                    }
+                    println!(
+                        "username: {}, hostname: {}, servername: {}, realname: {}",
+                        username, hostname, servername, realname
+                    );
+
+                    handler.set_username(server, source_ip, username);
+                    handler.set_realname(server, source_ip, realname);
+                    // handle hostname & servername later
+                } else {
+                    // ERR_NEEDMOREPARAMS
+                    continue;
+                }
             }
 
-            Command::Pong => {}
+            Command::Pong => {
+                println!("this is Pong command");
+            }
             _ => println!("Command: {} not found", raw_command),
         }
-        // if no response from ping, server view user as offline
-        // if handler.is_user_online(server, source_ip) {
-        //     let ping_msg = handler.ping(server, source_ip);
-        //     stream.write(ping_msg.as_bytes())?;
-
-        // ping from server
-        // let ping_msg = format!("PING :{}\r\n", HOST_NAME);
-        // stream.write(ping_msg.as_bytes())?;
     }
 
     // notice: user timeout or offline
