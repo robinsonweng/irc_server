@@ -79,27 +79,6 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
                     stream.write(msg.unwrap().as_bytes())?;
                     continue;
                 }
-
-                let wellcome = format!(
-                    ":{} 001 robinson :Welcome to the WeeChat IRC server\r\n",
-                    HOST_NAME
-                );
-                stream.write(wellcome.as_bytes())?;
-
-                let yourhost = format!(
-                    ":{} 002 robinson :Your host is weercd, running version 1.0.0-dev\r\n",
-                    HOST_NAME
-                );
-                stream.write(yourhost.as_bytes())?;
-
-                let created = format!(
-                    ":{} 003 robinson :Are you solid like a rock?\r\n",
-                    HOST_NAME
-                );
-                stream.write(created.as_bytes())?;
-
-                let myinfo = format!(":{} 004 robinson :Let's see!\r\n", HOST_NAME);
-                stream.write(myinfo.as_bytes())?;
             }
 
             Command::User => {
@@ -132,6 +111,38 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
             }
             _ => println!("Command: {} not found", raw_command),
         }
+
+        // is username & nickname is set & status == unregister
+        // Start wellcome message here
+
+        let nickname = handler.is_user_ready_to_register(server, source_ip);
+        if nickname.is_none() {
+            continue;
+        }
+        let nickname = nickname.unwrap();
+
+        let welcome = IrcReply::Welcome.to_message(
+            HOST_NAME,
+            &nickname,
+            ":Welcome to the WeeChar IIRC server",
+        );
+        stream.write(welcome.as_bytes())?;
+
+        let yourhost = IrcReply::YourHost.to_message(
+            HOST_NAME,
+            &nickname,
+            ":Your host is weercd, running version 1.0.0-dev",
+        );
+        stream.write(yourhost.as_bytes())?;
+
+        let created =
+            IrcReply::Created.to_message(HOST_NAME, &nickname, "Are you solid like a rock?");
+        stream.write(created.as_bytes())?;
+
+        let myinfo = IrcReply::MyInfo.to_message(HOST_NAME, &nickname, "Let me see see");
+        stream.write(myinfo.as_bytes())?;
+
+        handler.set_user_status(server, source_ip, UserStatus::Online);
     }
 
     // notice: user timeout or offline
