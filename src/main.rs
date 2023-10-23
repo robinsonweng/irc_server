@@ -1,21 +1,16 @@
 use std::io::{Read, Write};
 use std::net::{Ipv4Addr, SocketAddrV4, TcpListener, TcpStream};
-use std::thread::sleep;
 use std::time::Duration;
 
 // from modules
 mod irc;
 use irc::command::{Command, CommandHandler, CommandParser};
-use irc::response::{IrcError, IrcReply};
+use irc::response::{IrcError, IrcReply, IrcResponse};
 use irc::server::{Server, UserStatus};
 
 const READ_TIMEOUT: (u64, u32) = (20, 0);
 const WRITE_TIMEOUT: (u64, u32) = (20, 0);
 const HOST_NAME: &'static str = "localhost";
-
-fn msg_prefix(numeric: u16, nickname: &str, msg: &str) -> String {
-    format!(":{} {} {} {}\r\n", HOST_NAME, numeric, nickname, msg)
-}
 
 fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<()> {
     let mut stream = tcp_stream;
@@ -63,11 +58,6 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
         // the struct User should handle single thread scenario perfectly
 
         match parser.command {
-            Command::Capability => {
-                // handle this later, since this is not in rfc
-                // ref: https://ircv3.net/specs/extensions/capability-negotiation.html
-                println!("this is CAP command");
-            }
             Command::SetNickName => {
                 println!("this is NICK command");
 
