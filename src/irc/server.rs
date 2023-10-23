@@ -198,6 +198,26 @@ impl Server {
         println!("Set realusername for user: {:?}", user);
         self.online_users.push(user);
     }
+
+    pub fn set_username_by_ip(&mut self, source_ip: SocketAddr, username: &str) {
+        let target_index = &self
+            .online_users
+            .iter()
+            .position(|x| x.ip == source_ip)
+            .unwrap_or_else(|| panic!("user nor found for ip: {:?}", source_ip));
+        let target_user = &mut self.online_users.remove(*target_index);
+        let user = User {
+            nickname: target_user.nickname.clone(),
+            username: username.to_string().clone(),
+            realname: target_user.realname.clone(),
+            status: target_user.status,
+            belong_topics: target_user.belong_topics.to_owned(),
+            ip: target_user.ip,
+        };
+
+        println!("Set username for user: {:?}", user);
+        self.online_users.push(user);
+    }
 }
 
 #[cfg(test)]
