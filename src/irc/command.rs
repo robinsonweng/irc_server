@@ -1,12 +1,13 @@
 use crate::irc::response::{IrcError, IrcReply};
-use crate::irc::server::Server;
-use std::net::SocketAddr;
+use crate::irc::server::{Server, UserStatus};
+use std::net::{SocketAddr, TcpStream};
 
 #[derive(Debug)]
 pub enum Command {
     SetNickName,
     User,
     Ping,
+    Pong,
     List,
     Join,
     Topic,
@@ -31,6 +32,7 @@ impl CommandParser {
             "NICK" => Command::SetNickName,
             "USER" => Command::User,
             "PING" => Command::Ping,
+            "PONG" => Command::Pong,
             "LIST" => Command::List,
             "JOIN" => Command::Join,
             "TOPIC" => Command::Topic,
@@ -58,59 +60,14 @@ impl CommandHandler {
         server: &mut Server,
         nickname: &str,
         source_ip: SocketAddr,
-    ) -> Option<String> {
+    ) -> Result<(), IrcError> {
         // set nickname by finding user using ip
         let result = server.set_user_nickname_by_ip(source_ip, nickname);
-
-        match result {
-            Ok(()) => None,
-            Err(IrcError::NickCollision) => Some(format!("{} :Nickname collision KILL", nickname)),
-            _ => panic!("set nickname didn't match any rpl or err"),
-        }
+        result
     }
 
-    pub fn set_realname(&self, server: &mut Server, context: &str) -> Result<(), IrcError> {
-        // parse context, (<nickname> <hostname> <servername> :<realname>)
-        let msg = context.to_string().clone();
-        let msg_parameter = msg.split_whitespace().collect::<Vec<&str>>();
-
-        // ignore hostname & servername for now
-        let (nickname, hostname, servername, realname) = (
-            msg_parameter[0],
-            msg_parameter[1],
-            msg_parameter[2],
-            msg_parameter[3],
-        );
-
-        if realname.is_empty() {
-            todo!()
-        }
-        if !realname.starts_with(":") {
-            todo!()
-        }
-
-        let parsed_realname = realname.replace(":", "");
-        server.set_realname_by_nickname(nickname, &parsed_realname);
-
-        Ok(())
-    }
-
-    fn ping(&self) {
-        todo!()
-    }
-
-    fn list_channel(&self) {
-        // list all channel, if the channel parameter is used, show the channel status only
-        todo!()
-    }
-    fn join_topic(&self) {
-        // client start listening a specific channel
-        todo!()
-    }
-
-    fn change_topic() {
-        // Change the channel topic in a mode +t channel
-        todo!()
+    pub fn set_realname(&self, server: &mut Server, source_ip: SocketAddr, realname: &str) {
+        server.set_realname_by_ip(source_ip, realname);
     }
 
     fn list_all_nicknames() {
