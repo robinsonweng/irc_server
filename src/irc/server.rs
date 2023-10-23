@@ -178,11 +178,12 @@ impl Server {
         Ok(())
     }
 
+    pub fn set_realname_by_ip(&mut self, source_ip: SocketAddr, realname: &str) {
         let target_index = &self
             .online_users
             .iter()
-            .position(|x| x.nickname == nickname)
-            .unwrap_or_else(|| panic!("nickname: {} not found", nickname));
+            .position(|x| x.ip == source_ip)
+            .unwrap_or_else(|| panic!("user not found for ip: {:?}", source_ip));
 
         let target_user = &mut self.online_users.remove(*target_index);
         let user = User {
