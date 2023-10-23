@@ -70,35 +70,28 @@ impl CommandHandler {
         server.set_realname_by_ip(source_ip, realname);
     }
 
-    fn list_all_nicknames() {
-        //  By using the NAMES command, a user can list all nicknames that are
-        // visible to them on any channel that they can see.
+    pub fn set_username(&self, server: &mut Server, source_ip: SocketAddr, username: &str) {
+        server.set_username_by_ip(source_ip, username);
+    }
+
+    pub fn set_user_status(&self, server: &mut Server, source_ip: SocketAddr, status: UserStatus) {
+        server.set_user_status_by_ip(source_ip, status);
+    }
+
+    pub fn is_user_ready_to_register(
+        &self,
+        server: &mut Server,
+        source_ip: SocketAddr,
+    ) -> Option<String> {
+        if !server.is_user_ready_to_register(source_ip) {
+            return None;
+        }
+        Some(server.get_user_nick(source_ip))
+    }
+
+    pub fn ping(&self, server: &mut Server, source_ip: SocketAddr) -> String {
         todo!()
     }
 
-    fn leave_channel() {
-        // The PART message causes the client sending the message to be removed
-        // from the list of active users for all given channels listed in the
-        // parameter string.
-        todo!()
-    }
-
-    fn list_users() {
-        // The USERS command returns a list of users logged into the server in a
-        // similar  format
-        todo!()
-    }
-
-    fn private_message() {
-        //  PRIVMSG is used to send private messages between users.  <receiver>
-        // is the nickname of the receiver of the message.  <receiver> can also
-        // be a list of names or channels separated with commas.
-        todo!()
-    }
-
-    fn quit() {
-        // A client session is ended with a quit message.  The server must close
-        // the connection to a client which sends a QUIT message.
-        todo!()
-    }
+    pub fn wellcome(stream: TcpStream) {}
 }
