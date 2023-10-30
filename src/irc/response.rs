@@ -44,11 +44,21 @@ pub trait IrcResponse {
 
 impl IrcResponse for IrcReply {
     fn to_message(&self, hostname: &str, nickname: &str, body: &str) -> String {
-        format!(":{} {:3} {} {}\r\n", hostname, *self as u16, nickname, body)
+        let msg = format!(
+            ":{} {:0>3} {} :{}\r\n",
+            hostname, *self as u16, nickname, body
+        );
+        println!("{}", msg.clone());
+        msg
     }
 }
 impl IrcResponse for IrcError {
     fn to_message(&self, hostname: &str, nickname: &str, body: &str) -> String {
-        format!(":{} {:3} {} {}\r\n", hostname, *self as u16, nickname, body)
+        let msg = format!(
+            ":{} {:0>3} {} :{}\r\n",
+            hostname, *self as u16, nickname, body
+        );
+        println!("{}", msg.clone());
+        msg
     }
 }
