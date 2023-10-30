@@ -88,10 +88,19 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
 
                 let context = raw_context.clone().replace("\r\n", "");
                 let context_collection = context.split(' ').collect::<Vec<&str>>();
-                if let [username, hostname, servername, realname] = &context_collection[..] {
-                    if !realname.starts_with(":") {
-                        // syntax error here
+                if let [username, hostname, servername, raw_realname] = &context_collection[..] {
+                    if !raw_realname.starts_with(":") {
+                        // ERR_NEEDMOREPARAMS
+                        let need_more_param = IrcError::NeedMoreParams.to_message(
+                            "USER",
+                            "",
+                            "Username should start with prefix ':'.",
+                        );
+                        stream.write(need_more_param.as_bytes())?;
+                        continue;
                     }
+
+                    let realname = &raw_realname.replace(":", "");
                     println!(
                         "username: {}, hostname: {}, servername: {}, realname: {}",
                         username, hostname, servername, realname
@@ -102,6 +111,9 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
                     // handle hostname & servername later
                 } else {
                     // ERR_NEEDMOREPARAMS
+                    let need_more_param =
+                        IrcError::NeedMoreParams.to_message("USER", "", "Not enough parameters");
+                    stream.write(need_more_param.as_bytes())?;
                     continue;
                 }
             }
