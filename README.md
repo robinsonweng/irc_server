@@ -3,8 +3,8 @@
 ## Main feature
 - [x] Use tcplisten to listen irc port (6667) 
 - Implment most command in single thread
-    - [ ] NICK
-    - [ ] USER
+    - [x] NICK
+    - [x] USER
     - [ ] PING
     - [ ] LIST
     - [ ] JOIN
