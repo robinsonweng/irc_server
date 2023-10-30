@@ -107,6 +107,8 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
             }
 
             Command::Pong => {
+                // ERR_NOORIGIN
+                // ERR_NOSUCHSERVER
                 println!("this is Pong command");
             }
             _ => println!("Command: {} not found", raw_command),
