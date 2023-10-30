@@ -53,11 +53,16 @@ impl IrcResponse for IrcReply {
     }
 }
 impl IrcResponse for IrcError {
-    fn to_message(&self, hostname: &str, nickname: &str, body: &str) -> String {
-        let msg = format!(
-            ":{} {:0>3} {} :{}\r\n",
-            hostname, *self as u16, nickname, body
-        );
+    fn to_message(&self, primary: &str, secondary: &str, body: &str) -> String {
+        let msg: String;
+        if !primary.is_empty() && !secondary.is_empty() {
+            msg = format!("{} {} :{}\r\n", primary, secondary, body);
+        } else if !primary.is_empty() && secondary.is_empty() {
+            msg = format!("{} :{}\r\n", primary, body);
+        } else {
+            msg = format!(":{}\r\n", body);
+        }
+
         println!("{}", msg.clone());
         msg
     }
