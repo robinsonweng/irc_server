@@ -18,7 +18,7 @@ This is a irc server implmentation in rust & [rfc1459](https://www.rfc-editor.or
     - [ ] PRIVMSG
     - [ ] QUIT
 
-- Implment necessasary numeric commands
+- Implment necessary numeric commands
     - [x] (001) RPL_MYINFO 
     - [x] (002) RPL_CREATED 
     - [x] (003) RPL_YOURHOST 
