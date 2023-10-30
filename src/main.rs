@@ -121,17 +121,14 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
         }
         let nickname = nickname.unwrap();
 
-        let welcome = IrcReply::Welcome.to_message(
-            HOST_NAME,
-            &nickname,
-            ":Welcome to the WeeChar IIRC server",
-        );
+        let welcome =
+            IrcReply::Welcome.to_message(HOST_NAME, &nickname, ":Welcome to the rust irc server");
         stream.write(welcome.as_bytes())?;
 
         let yourhost = IrcReply::YourHost.to_message(
             HOST_NAME,
             &nickname,
-            ":Your host is weercd, running version 1.0.0-dev",
+            ":Your host is rust irc, running version 1.0.0-dev",
         );
         stream.write(yourhost.as_bytes())?;
 
