@@ -118,6 +118,18 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
                 }
             }
 
+            Command::Ping => {
+                // ERR_NOORIGIN  if no server is given
+                println!("this is Ping command");
+
+                if raw_context.is_empty() {
+                    stream.write("ERROR_NOORIGIN\r\n".as_bytes())?;
+                    continue;
+                }
+                println!("the pinged server is: {}", raw_context);
+                stream.write("Pong\r\n".as_bytes())?;
+            }
+
             Command::Pong => {
                 // ERR_NOORIGIN
                 // ERR_NOSUCHSERVER
