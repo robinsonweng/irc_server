@@ -28,6 +28,7 @@ pub enum IrcReply {
 pub enum IrcError {
     NoSuchNick = 401,
     NoSuchChannel = 403,
+    NoOrigin = 409,
     NoRecipent = 411,
     NoTextTosend = 412,
     NoNicknameGiven = 431,
