@@ -14,7 +14,7 @@ const HOST_NAME: &'static str = "localhost";
 
 fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<()> {
     let mut stream = tcp_stream;
-    let source_ip = stream.peer_addr()?;
+    let client_ip = stream.peer_addr()?;
     let host_ip = stream.local_addr()?;
 
     let (r_second, r_micro_second) = READ_TIMEOUT;
@@ -22,7 +22,7 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
     stream.set_read_timeout(Some(Duration::new(r_second, r_micro_second)))?;
     stream.set_write_timeout(Some(Duration::new(w_second, w_micro_second)))?;
 
-    server.user_online(source_ip);
+    server.user_online(client_ip);
 
     loop {
         let mut buf: [u8; 128] = [0; 128];
@@ -31,7 +31,7 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
         let message = String::from_utf8((&buf).to_vec()).unwrap_or_else(|_| {
             panic!(
                 "Cant convert message {:?} to utf-8 from client: {}",
-                &raw_message, source_ip,
+                &raw_message, client_ip,
             )
         });
 
@@ -64,7 +64,7 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
                 println!("raw context: {}", raw_context);
 
                 let nickname = parser.context.clone();
-                let set_nick_result = handler.set_nickname(server, &nickname, source_ip);
+                let set_nick_result = handler.set_nickname(server, &nickname, client_ip);
                 let msg = match set_nick_result {
                     Ok(()) => None,
                     Err(IrcError::NickCollision) => {
@@ -106,8 +106,8 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
                         username, hostname, servername, realname
                     );
 
-                    handler.set_username(server, source_ip, username);
-                    handler.set_realname(server, source_ip, realname);
+                    handler.set_username(server, client_ip, username);
+                    handler.set_realname(server, client_ip, realname);
                     // handle hostname & servername later
                 } else {
                     // ERR_NEEDMOREPARAMS
@@ -141,7 +141,7 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
         // is username & nickname is set & status == unregister
         // Start wellcome message here
 
-        let nickname = handler.is_user_ready_to_register(server, source_ip);
+        let nickname = handler.is_user_ready_to_register(server, client_ip);
         if nickname.is_none() {
             continue;
         }
@@ -165,11 +165,11 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
         let myinfo = IrcReply::MyInfo.to_message(HOST_NAME, &nickname, "Let me see see");
         stream.write(myinfo.as_bytes())?;
 
-        handler.set_user_status(server, source_ip, UserStatus::Online);
+        handler.set_user_status(server, client_ip, UserStatus::Online);
     }
 
     // notice: user timeout or offline
-    server.user_offline(source_ip);
+    server.user_offline(client_ip);
 
     Ok(())
 }
