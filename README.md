@@ -8,7 +8,7 @@ This is a irc server implmentation in rust & [rfc1459](https://www.rfc-editor.or
 - Implment most command in single thread
     - [x] NICK
     - [x] USER
-    - [ ] PING
+    - [x] PING
     - [ ] LIST
     - [ ] JOIN
     - [ ] TOPIC
