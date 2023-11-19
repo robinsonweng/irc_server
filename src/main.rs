@@ -1,6 +1,7 @@
 use std::io::{Read, Write};
 use std::net::{Ipv4Addr, SocketAddrV4, TcpListener, TcpStream};
 use std::time::Duration;
+use regex::Regex;
 
 // from modules
 mod irc;
@@ -131,6 +132,23 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
                 }
                 println!("the pinged server is: {}", raw_context);
                 stream.write("Pong\r\n".as_bytes())?;
+            }
+
+            Command::Join => {
+                /*
+                    user joins a channel
+                    if channel dont exist, create one
+                    the channel ceases to exist if last user leave
+                    regular channel (channel name start with '#') are all known on every server
+                    local channel (channel name start with '&') are only known on one spcific server
+                */
+                let channel_regex = r"^JOIN ([#|&]\w+)([,][#|&]\w+)?( \w+)?(,\w+)?";
+            }
+
+            Command::Topic => {
+                /*
+
+                */
             }
 
             Command::Pong => {
