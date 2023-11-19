@@ -123,7 +123,10 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
                 println!("this is Ping command");
 
                 if raw_context.is_empty() {
-                    stream.write("ERROR_NOORIGIN\r\n".as_bytes())?;
+                    // find nick from ip
+                    let nickname = "";
+                    let no_origin = IrcError::NoOrigin.to_message(HOST_NAME, &nickname, ":No origin specified\r\n");
+                    stream.write(no_origin.as_bytes())?;
                     continue;
                 }
                 println!("the pinged server is: {}", raw_context);
