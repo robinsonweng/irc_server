@@ -42,14 +42,18 @@ impl PartialEq for User {
 }
 impl Eq for User {}
 
+pub struct Channel {
+    topics: Vec<String>,
+    user_amount: u64,
+}
+
 pub struct Server {
     online_users: Vec<User>,
-    topics: Vec<String>,
 }
 
 impl PartialEq for Server {
     fn eq(&self, other: &Self) -> bool {
-        self.online_users == other.online_users || self.topics == other.topics
+        self.online_users == other.online_users
     }
 }
 
@@ -59,7 +63,6 @@ impl Server {
     pub fn new() -> Self {
         Self {
             online_users: Vec::new(),
-            topics: Vec::new(),
         }
     }
 
@@ -232,6 +235,7 @@ mod server_unit_tests {
     #[test]
     fn test_user_online() {
         let server = &mut setup();
+
         let socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1234);
         server.user_online(socket_addr);
 
@@ -241,6 +245,8 @@ mod server_unit_tests {
             .pop()
             .expect("I thought you gyus were online?");
         assert_eq!(*online_user, User::new(socket_addr));
+
+        assert_eq!(server.online_users.len(), 1);
     }
 
     #[test]
@@ -260,6 +266,8 @@ mod server_unit_tests {
             .pop()
             .expect("I thought you guys were online?");
         assert_eq!(*online_user, User::new(user_addr2));
+
+        assert_eq!(server.online_users.len(), 1);
     }
 
     #[test]
