@@ -1,7 +1,7 @@
+use regex::Regex;
 use std::io::{Read, Write};
 use std::net::{Ipv4Addr, SocketAddrV4, TcpListener, TcpStream};
 use std::time::Duration;
-use regex::Regex;
 
 // from modules
 mod irc;
@@ -126,7 +126,11 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
                 if raw_context.is_empty() {
                     // find nick from ip
                     let nickname = "";
-                    let no_origin = IrcError::NoOrigin.to_message(HOST_NAME, &nickname, ":No origin specified\r\n");
+                    let no_origin = IrcError::NoOrigin.to_message(
+                        HOST_NAME,
+                        &nickname,
+                        ":No origin specified\r\n",
+                    );
                     stream.write(no_origin.as_bytes())?;
                     continue;
                 }
