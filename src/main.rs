@@ -85,9 +85,9 @@ fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<(
             Command::User => {
                 println!("this is USER command");
                 println!("command raw: {}", raw_command);
-                println!("raw context: {}", raw_context.clone());
+                println!("raw context: {}", raw_context);
 
-                let context = raw_context.clone().replace("\r\n", "");
+                let context = raw_context.replace("\r\n", "");
                 let context_collection = context.split(' ').collect::<Vec<&str>>();
                 if let [username, hostname, servername, raw_realname] = &context_collection[..] {
                     if !raw_realname.starts_with(":") {
