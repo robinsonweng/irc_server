@@ -239,14 +239,14 @@ mod server_unit_tests {
         let socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1234);
         server.user_online(socket_addr);
 
+        assert_eq!(server.online_users.len(), 1);
+
         // check if user ip is eq in the vec
         let online_user = &server
             .online_users
             .pop()
             .expect("I thought you gyus were online?");
         assert_eq!(*online_user, User::new(socket_addr));
-
-        assert_eq!(server.online_users.len(), 1);
     }
 
     #[test]
@@ -261,13 +261,13 @@ mod server_unit_tests {
 
         server.user_offline(user_addr1);
 
+        assert_eq!(server.online_users.len(), 1);
+
         let online_user = &server
             .online_users
             .pop()
             .expect("I thought you guys were online?");
         assert_eq!(*online_user, User::new(user_addr2));
-
-        assert_eq!(server.online_users.len(), 1);
     }
 
     #[test]
