@@ -59,7 +59,7 @@ pub trait IrcResponseToMessage {
     fn to_message(&self, hostname: &str, nickname: &str, body: &str) -> String;
 }
 
-impl IrcResponse for IrcReply {
+impl IrcResponseToMessage for IrcReply {
     fn to_message(&self, hostname: &str, nickname: &str, body: &str) -> String {
         let msg = format!(
             ":{} {:0>3} {} :{}\r\n",
@@ -69,7 +69,8 @@ impl IrcResponse for IrcReply {
         msg
     }
 }
-impl IrcResponse for IrcError {
+
+impl IrcResponseToMessage for IrcError {
     fn to_message(&self, primary: &str, secondary: &str, body: &str) -> String {
         let msg: String;
         if !primary.is_empty() && !secondary.is_empty() {
