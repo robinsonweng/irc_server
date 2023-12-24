@@ -37,10 +37,8 @@ pub enum IrcError {
     AlreadyRegistred = 462,
 }
 
-pub trait IrcResponse {
-    fn to_message(&self, hostname: &str, nickname: &str, body: &str) -> String {
-        todo!()
-    }
+pub trait IrcResponseToMessage {
+    fn to_message(&self, hostname: &str, nickname: &str, body: &str) -> String;
 }
 
 impl IrcResponse for IrcReply {
