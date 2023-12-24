@@ -16,6 +16,8 @@ impl From<IrcError> for IrcErrors {
         Self::BadMessage
     }
 }
+
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub enum IrcReply {
     Welcome = 1,
@@ -42,6 +44,7 @@ pub enum IrcReply {
     EndOfUsers = 394,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone, Copy)]
 pub enum IrcError {
     NoSuchNick = 401,
