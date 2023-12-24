@@ -1,3 +1,21 @@
+use std::io::Error as IoError;
+
+pub enum IrcErrors {
+    BadMessage,
+    BadStream,
+}
+
+impl From<IoError> for IrcErrors {
+    fn from(_err: IoError) -> Self {
+        Self::BadStream
+    }
+}
+
+impl From<IrcError> for IrcErrors {
+    fn from(_err: IrcError) -> Self {
+        Self::BadMessage
+    }
+}
 #[derive(Debug, Clone, Copy)]
 pub enum IrcReply {
     Welcome = 1,
