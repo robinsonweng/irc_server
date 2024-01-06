@@ -9,7 +9,7 @@ pub enum UserStatus {
 }
 
 #[derive(Debug)]
-pub struct User {
+pub struct IrcUser {
     nickname: String,
     username: String,
     realname: String,
@@ -18,8 +18,12 @@ pub struct User {
     ip: SocketAddr,
 }
 
-impl User {
-    pub fn new(ip: SocketAddr) -> Self {
+pub trait User {
+    fn new(ip: SocketAddr) -> Self;
+}
+
+impl User for IrcUser {
+    fn new(ip: SocketAddr) -> Self {
         Self {
             nickname: String::new(),
             username: String::new(),
@@ -31,7 +35,7 @@ impl User {
     }
 }
 
-impl PartialEq for User {
+impl PartialEq for IrcUser {
     fn eq(&self, other: &Self) -> bool {
         self.nickname == other.nickname
             || self.realname == other.realname
@@ -40,7 +44,7 @@ impl PartialEq for User {
             || self.ip == other.ip
     }
 }
-impl Eq for User {}
+impl Eq for IrcUser {}
 
 pub struct Channel {
     topics: Vec<String>,
@@ -48,7 +52,7 @@ pub struct Channel {
 }
 
 pub struct IrcServer {
-    online_users: Vec<User>,
+    online_users: Vec<IrcUser>,
 }
 
 pub trait Server {
@@ -82,8 +86,8 @@ impl Server for IrcServer {
 
     fn user_online(&mut self, source_ip: SocketAddr) {
         // self.online_users.contains(user)
-        let user = User::new(source_ip);
-        println!("User: {:?} online!", user);
+        let user = IrcUser::new(source_ip);
+        println!("IrcUser: {:?} online!", user);
         self.online_users.push(user);
     }
 
@@ -94,7 +98,7 @@ impl Server for IrcServer {
             .position(|x| x.ip == source_ip)
             .unwrap();
 
-        println!("User: {:?} offline!", self.online_users[index]);
+        println!("IrcUser: {:?} offline!", self.online_users[index]);
         self.online_users.remove(index);
     }
 
@@ -139,7 +143,7 @@ impl Server for IrcServer {
             .unwrap_or_else(|| panic!("Cant find user by ip"));
 
         let target = &mut self.online_users.remove(*index);
-        let user = User {
+        let user = IrcUser {
             nickname: target.nickname.clone(),
             username: target.username.clone(),
             realname: target.realname.clone(),
@@ -185,7 +189,7 @@ impl Server for IrcServer {
             .unwrap_or_else(|| panic!("Cant find user by ip: {:?}", source_ip));
         let target = &mut self.online_users.remove(*index);
 
-        let user = User {
+        let user = IrcUser {
             nickname: name,
             username: target.username.clone(),
             realname: target.realname.clone(),
@@ -211,7 +215,7 @@ impl Server for IrcServer {
             .unwrap_or_else(|| panic!("user not found for ip: {:?}", source_ip));
 
         let target_user = &mut self.online_users.remove(*target_index);
-        let user = User {
+        let user = IrcUser {
             nickname: target_user.nickname.clone(),
             username: target_user.username.clone(),
             realname: realname.to_string().clone(),
@@ -235,7 +239,7 @@ impl Server for IrcServer {
             .position(|x| x.ip == source_ip)
             .unwrap_or_else(|| panic!("user nor found for ip: {:?}", source_ip));
         let target_user = &mut self.online_users.remove(*target_index);
-        let user = User {
+        let user = IrcUser {
             nickname: target_user.nickname.clone(),
             username: username.to_string().clone(),
             realname: target_user.realname.clone(),
@@ -272,7 +276,7 @@ mod server_unit_tests {
             .online_users
             .pop()
             .expect("I thought you gyus were online?");
-        assert_eq!(*online_user, User::new(socket_addr));
+        assert_eq!(*online_user, IrcUser::new(socket_addr));
     }
 
     #[test]
@@ -282,8 +286,8 @@ mod server_unit_tests {
         let user_addr1 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1234);
         let user_addr2 = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 5678);
 
-        server.online_users.push(User::new(user_addr1));
-        server.online_users.push(User::new(user_addr2));
+        server.online_users.push(IrcUser::new(user_addr1));
+        server.online_users.push(IrcUser::new(user_addr2));
 
         server.user_offline(user_addr1);
 
@@ -293,7 +297,7 @@ mod server_unit_tests {
             .online_users
             .pop()
             .expect("I thought you guys were online?");
-        assert_eq!(*online_user, User::new(user_addr2));
+        assert_eq!(*online_user, IrcUser::new(user_addr2));
     }
 
     #[test]
@@ -302,7 +306,7 @@ mod server_unit_tests {
 
         let useraddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1234);
         let nickname = "Nick";
-        let user = User {
+        let user = IrcUser {
             nickname: String::from(nickname),
             username: String::new(),
             realname: String::new(),
@@ -320,7 +324,7 @@ mod server_unit_tests {
         let server = &mut setup();
 
         let useraddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1234);
-        let user = User::new(useraddr);
+        let user = IrcUser::new(useraddr);
         server.online_users.push(user);
 
         let nickname = "Nick";
@@ -340,7 +344,7 @@ mod server_unit_tests {
 
         let nickname = "Nick";
         let realname = "Nick Hansome";
-        let user = User {
+        let user = IrcUser {
             nickname: String::from(nickname),
             username: String::new(),
             realname: String::new(),
