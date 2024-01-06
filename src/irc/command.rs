@@ -1,5 +1,5 @@
 use crate::irc::response::{IrcError, IrcErrors, IrcReply, IrcResponseToMessage};
-use crate::irc::server::{IrcServer, UserStatus, Server};
+use crate::irc::server::{UserStatus, Server};
 use regex::Regex;
 use std::io::Write;
 use std::net::{SocketAddr, TcpStream};
@@ -69,7 +69,7 @@ impl CommandHandler {
     pub fn execute(
         &self,
         stream: &mut TcpStream,
-        server: &mut IrcServer,
+        server: &mut impl Server,
         client_ip: SocketAddr,
     ) -> Result<(), IrcErrors> {
         // if first user detected in NICK command, wait untill user occor
@@ -200,7 +200,7 @@ impl CommandHandler {
     pub fn user_online(
         &self,
         stream: &mut TcpStream,
-        server: &mut IrcServer,
+        server: &mut impl Server,
         hostname: &str,
         client_ip: SocketAddr,
     ) -> std::io::Result<()> {
@@ -239,7 +239,7 @@ impl CommandHandler {
 
     pub fn set_nickname(
         &self,
-        server: &mut IrcServer,
+        server: &mut impl Server,
         nickname: &str,
         source_ip: SocketAddr,
     ) -> Result<(), IrcError> {
@@ -248,21 +248,21 @@ impl CommandHandler {
         result
     }
 
-    pub fn set_realname(&self, server: &mut IrcServer, source_ip: SocketAddr, realname: &str) {
+    pub fn set_realname(&self, server: &mut impl Server, source_ip: SocketAddr, realname: &str) {
         server.set_realname_by_ip(source_ip, realname);
     }
 
-    pub fn set_username(&self, server: &mut IrcServer, source_ip: SocketAddr, username: &str) {
+    pub fn set_username(&self, server: &mut impl Server, source_ip: SocketAddr, username: &str) {
         server.set_username_by_ip(source_ip, username);
     }
 
-    pub fn set_user_status(&self, server: &mut IrcServer, source_ip: SocketAddr, status: UserStatus) {
+    pub fn set_user_status(&self, server: &mut impl Server, source_ip: SocketAddr, status: UserStatus) {
         server.set_user_status_by_ip(source_ip, status);
     }
 
     pub fn is_user_ready_to_register(
         &self,
-        server: &mut IrcServer,
+        server: &mut impl Server,
         source_ip: SocketAddr,
     ) -> Option<String> {
         if !server.is_user_ready_to_register(source_ip) {

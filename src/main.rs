@@ -12,7 +12,7 @@ const READ_TIMEOUT: (u64, u32) = (20, 0);
 const WRITE_TIMEOUT: (u64, u32) = (20, 0);
 const HOST_NAME: &'static str = "localhost";
 
-fn handle_event(tcp_stream: TcpStream, server: &mut IrcServer) -> std::io::Result<()> {
+fn handle_event(tcp_stream: TcpStream, server: &mut impl Server) -> std::io::Result<()> {
     let mut stream = tcp_stream;
     let client_ip = stream.peer_addr()?;
     let host_ip = stream.local_addr()?;
