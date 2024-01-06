@@ -6,13 +6,13 @@ use std::time::Duration;
 mod irc;
 use irc::command::CommandHandler;
 use irc::response::IrcErrors;
-use irc::server::Server;
+use irc::server::{IrcServer, Server};
 
 const READ_TIMEOUT: (u64, u32) = (20, 0);
 const WRITE_TIMEOUT: (u64, u32) = (20, 0);
 const HOST_NAME: &'static str = "localhost";
 
-fn handle_event(tcp_stream: TcpStream, server: &mut Server) -> std::io::Result<()> {
+fn handle_event(tcp_stream: TcpStream, server: &mut IrcServer) -> std::io::Result<()> {
     let mut stream = tcp_stream;
     let client_ip = stream.peer_addr()?;
     let host_ip = stream.local_addr()?;
@@ -64,7 +64,7 @@ fn main() -> std::io::Result<()> {
     let socket_ip = SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 6667);
 
     let listener = TcpListener::bind(socket_ip)?;
-    let mut server = Server::new();
+    let mut server = IrcServer::new();
     for stream in listener.incoming() {
         let client = stream?;
         handle_event(client, &mut server)?;

@@ -47,33 +47,47 @@ pub struct Channel {
     user_amount: u64,
 }
 
-pub struct Server {
+pub struct IrcServer {
     online_users: Vec<User>,
 }
 
-impl PartialEq for Server {
+pub trait Server {
+    fn new() -> Self;
+    fn user_online(&mut self, source_ip: SocketAddr);
+    fn user_offline(&mut self, source_ip: SocketAddr);
+    fn is_nickname_collision(&self, nickname: &str) -> bool;
+    fn get_user_status(&mut self, source_ip: SocketAddr) -> UserStatus;
+    fn get_user_nick(&mut self, source_ip: SocketAddr) -> String;
+    fn set_user_status_by_ip(&mut self, source_ip: SocketAddr, status: UserStatus);
+    fn is_user_ready_to_register(&mut self, source_ip: SocketAddr) -> bool;
+    fn set_user_nickname_by_ip(&mut self, source_ip: SocketAddr, nickname: &str) -> Result<(), IrcError>;
+    fn set_realname_by_ip(&mut self, source_ip: SocketAddr, realname: &str);
+    fn set_username_by_ip(&mut self, source_ip: SocketAddr, username: &str);
+}
+
+impl PartialEq for IrcServer {
     fn eq(&self, other: &Self) -> bool {
         self.online_users == other.online_users
     }
 }
 
-impl Eq for Server {}
+impl Eq for IrcServer {}
 
-impl Server {
-    pub fn new() -> Self {
+impl Server for IrcServer {
+    fn new() -> Self {
         Self {
             online_users: Vec::new(),
         }
     }
 
-    pub fn user_online(&mut self, source_ip: SocketAddr) {
+    fn user_online(&mut self, source_ip: SocketAddr) {
         // self.online_users.contains(user)
         let user = User::new(source_ip);
         println!("User: {:?} online!", user);
         self.online_users.push(user);
     }
 
-    pub fn user_offline(&mut self, source_ip: SocketAddr) {
+    fn user_offline(&mut self, source_ip: SocketAddr) {
         let index = self
             .online_users
             .iter()
@@ -84,7 +98,7 @@ impl Server {
         self.online_users.remove(index);
     }
 
-    pub fn is_nickname_collision(&self, nickname: &str) -> bool {
+    fn is_nickname_collision(&self, nickname: &str) -> bool {
         for user in &self.online_users {
             if nickname.to_string() == user.nickname {
                 return true;
@@ -93,7 +107,7 @@ impl Server {
         false
     }
 
-    pub fn get_user_status(&mut self, source_ip: SocketAddr) -> UserStatus {
+    fn get_user_status(&mut self, source_ip: SocketAddr) -> UserStatus {
         let index = &self
             .online_users
             .iter()
@@ -103,7 +117,7 @@ impl Server {
         self.online_users[*index].status
     }
 
-    pub fn get_user_nick(&mut self, source_ip: SocketAddr) -> String {
+    fn get_user_nick(&mut self, source_ip: SocketAddr) -> String {
         let index = &self
             .online_users
             .iter()
@@ -113,7 +127,11 @@ impl Server {
         self.online_users[*index].nickname.clone()
     }
 
-    pub fn set_user_status_by_ip(&mut self, source_ip: SocketAddr, status: UserStatus) {
+    fn set_user_status_by_ip(
+        &mut self,
+        source_ip: SocketAddr,
+        status: UserStatus
+) {
         let index = &self
             .online_users
             .iter()
@@ -132,7 +150,7 @@ impl Server {
         self.online_users.push(user);
     }
 
-    pub fn is_user_ready_to_register(&mut self, source_ip: SocketAddr) -> bool {
+    fn is_user_ready_to_register(&mut self, source_ip: SocketAddr) -> bool {
         let index = &self
             .online_users
             .iter()
@@ -149,7 +167,7 @@ impl Server {
         false
     }
 
-    pub fn set_user_nickname_by_ip(
+    fn set_user_nickname_by_ip(
         &mut self,
         source_ip: SocketAddr,
         nickname: &str,
@@ -181,7 +199,11 @@ impl Server {
         Ok(())
     }
 
-    pub fn set_realname_by_ip(&mut self, source_ip: SocketAddr, realname: &str) {
+    fn set_realname_by_ip(
+        &mut self,
+        source_ip: SocketAddr,
+        realname: &str
+    ) {
         let target_index = &self
             .online_users
             .iter()
@@ -202,7 +224,11 @@ impl Server {
         self.online_users.push(user);
     }
 
-    pub fn set_username_by_ip(&mut self, source_ip: SocketAddr, username: &str) {
+    fn set_username_by_ip(
+        &mut self,
+        source_ip: SocketAddr,
+        username: &str
+    ) {
         let target_index = &self
             .online_users
             .iter()
@@ -228,8 +254,8 @@ mod server_unit_tests {
     use super::*;
     use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
-    pub fn setup() -> Server {
-        Server::new()
+    pub fn setup() -> IrcServer {
+        IrcServer::new()
     }
 
     #[test]

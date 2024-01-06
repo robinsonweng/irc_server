@@ -1,5 +1,5 @@
 use crate::irc::response::{IrcError, IrcErrors, IrcReply, IrcResponseToMessage};
-use crate::irc::server::{Server, UserStatus};
+use crate::irc::server::{IrcServer, UserStatus, Server};
 use regex::Regex;
 use std::io::Write;
 use std::net::{SocketAddr, TcpStream};
@@ -69,7 +69,7 @@ impl CommandHandler {
     pub fn execute(
         &self,
         stream: &mut TcpStream,
-        server: &mut Server,
+        server: &mut IrcServer,
         client_ip: SocketAddr,
     ) -> Result<(), IrcErrors> {
         // if first user detected in NICK command, wait untill user occor
@@ -200,7 +200,7 @@ impl CommandHandler {
     pub fn user_online(
         &self,
         stream: &mut TcpStream,
-        server: &mut Server,
+        server: &mut IrcServer,
         hostname: &str,
         client_ip: SocketAddr,
     ) -> std::io::Result<()> {
@@ -239,7 +239,7 @@ impl CommandHandler {
 
     pub fn set_nickname(
         &self,
-        server: &mut Server,
+        server: &mut IrcServer,
         nickname: &str,
         source_ip: SocketAddr,
     ) -> Result<(), IrcError> {
@@ -248,21 +248,21 @@ impl CommandHandler {
         result
     }
 
-    pub fn set_realname(&self, server: &mut Server, source_ip: SocketAddr, realname: &str) {
+    pub fn set_realname(&self, server: &mut IrcServer, source_ip: SocketAddr, realname: &str) {
         server.set_realname_by_ip(source_ip, realname);
     }
 
-    pub fn set_username(&self, server: &mut Server, source_ip: SocketAddr, username: &str) {
+    pub fn set_username(&self, server: &mut IrcServer, source_ip: SocketAddr, username: &str) {
         server.set_username_by_ip(source_ip, username);
     }
 
-    pub fn set_user_status(&self, server: &mut Server, source_ip: SocketAddr, status: UserStatus) {
+    pub fn set_user_status(&self, server: &mut IrcServer, source_ip: SocketAddr, status: UserStatus) {
         server.set_user_status_by_ip(source_ip, status);
     }
 
     pub fn is_user_ready_to_register(
         &self,
-        server: &mut Server,
+        server: &mut IrcServer,
         source_ip: SocketAddr,
     ) -> Option<String> {
         if !server.is_user_ready_to_register(source_ip) {
@@ -275,6 +275,11 @@ impl CommandHandler {
 #[cfg(test)]
 mod command_tests {
     use super::*;
+    use std::net::{IpAddr, Ipv4Addr};
+
+    struct MockServer {
+
+    }
 
     pub fn setup(raw_message: &str) -> CommandHandler {
         CommandHandler::new(raw_message)
@@ -283,7 +288,12 @@ mod command_tests {
     #[test]
     fn test_execute_command_new_nickname() {
         let raw_message = "NICK Wiz";
+        let client_ip = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1234);
+        let mut server = IrcServer::new();
+        let mut stream: TcpStream;
+
         let command_handler = setup(raw_message);
+        // command_handler.execute(&mut stream, &mut server, client_ip);
     }
     fn test_execute_command_change_nickname() {
         let raw_message = ":WiZ NICK Kilroy";
