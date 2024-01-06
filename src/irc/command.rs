@@ -271,32 +271,3 @@ impl CommandHandler {
         Some(server.get_user_nick(source_ip))
     }
 }
-
-#[cfg(test)]
-mod command_tests {
-    use super::*;
-    use std::net::{IpAddr, Ipv4Addr};
-
-    struct MockServer {
-
-    }
-
-    pub fn setup(raw_message: &str) -> CommandHandler {
-        CommandHandler::new(raw_message)
-    }
-
-    #[test]
-    fn test_execute_command_new_nickname() {
-        let raw_message = "NICK Wiz";
-        let client_ip = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 1234);
-        let mut server = IrcServer::new();
-        let mut stream: TcpStream;
-
-        let command_handler = setup(raw_message);
-        // command_handler.execute(&mut stream, &mut server, client_ip);
-    }
-    fn test_execute_command_change_nickname() {
-        let raw_message = ":WiZ NICK Kilroy";
-        let command_handler = setup(raw_message);
-    }
-}
