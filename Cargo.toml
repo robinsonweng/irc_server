@@ -8,6 +8,3 @@ edition = "2021"
 [dependencies]
 regex = "1.10.2"
 strum_macros = "0.25.2"
-
-[dev-dependencies]
-tcp-test = "0.1"

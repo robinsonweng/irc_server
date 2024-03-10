@@ -23,14 +23,7 @@ version = "0.1.0"
 dependencies = [
  "regex",
  "strum_macros",
- "tcp-test",
 ]
-
-[[package]]
-name = "lazy_static"
-version = "1.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "memchr"
@@ -113,15 +106,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "tcp-test"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e2ead44ab42fbfdf2dfa78e1822f537a042a117f5677317007ff46af50d3dd80"
-dependencies = [
- "lazy_static",
 ]
 
 [[package]]
