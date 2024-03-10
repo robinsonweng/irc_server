@@ -21,6 +21,11 @@ where T: Read + Write
 
     let (command, message) = splited_message.unwrap();
 
+    if command == "CAP" {
+        return Ok(());
+    }
+
+
     println!("incoming command: '{}'", command);
     println!("incoming message: '{}'", message);
 
