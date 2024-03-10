@@ -1,30 +1,16 @@
+use std::fmt::Write as _;
+
+
+use irc_server::irc::execute;
+
+
 mod common;
 use common::MockedStream;
 
-// user name: rob
-// channel name: rust
 
 const USER_NAME: &str = "rob";
 const CHANNEL_NAME: &str = "rust";
 
-
-/*
-#[test]
-fn main_test() {
-    let mut mocked_stream = MockedStream {
-        read_message: Vec::new(),
-        write_message: Vec::new(),
-    };
-
-    mocked_stream.read_message.push(b"123 123".to_vec());
-
-    let _ = execute(&mut mocked_stream);
-
-    let result = mocked_stream.write_message.pop().unwrap();
-
-    assert_eq!(result, b"cool\r\n".to_vec());
-} 
-*/
 
 fn setup() -> MockedStream {
     MockedStream {
@@ -42,7 +28,27 @@ fn test_command_capability() {
 
     stream.read_message.push(b"CAP LS 302".to_vec());
 
+    let _ = execute(&mut stream);
+
     let result = stream.write_message.pop();
 
     assert!(result.is_none());
+}
+
+
+#[test]
+fn test_command_user_when_nick_is_not_set() {
+    // if nick is not set, return nothing,
+    let mut stream = setup();
+
+    let mut request_message = String::new();
+    let _ = write!(&mut request_message, "USER {}", USER_NAME);
+
+    stream.read_message.push(request_message.as_bytes().to_vec());
+
+    let _ = execute(&mut stream);
+
+    let raw_response = stream.write_message.pop();
+
+    assert!(raw_response.is_none());
 }

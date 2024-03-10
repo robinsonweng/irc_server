@@ -25,11 +25,15 @@ where T: Read + Write
         return Ok(());
     }
 
+    if command == "USER" {
+        return Ok(());
+    }
+
 
     println!("incoming command: '{}'", command);
     println!("incoming message: '{}'", message);
 
     let _ = stream.write(b"cool\r\n");
 
-    Ok(())
+    Ok(())  // command not found?
 }
