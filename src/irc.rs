@@ -40,6 +40,13 @@ where T: Read + Write
 
     if command == "NICK" {
         user.set_nickname(&message);
+
+        if user.register_complete() {
+            let welcome = format!("{} 001 :Welcome to the rust irc server\r\n", "localhost");
+            let _ = stream.write(welcome.as_bytes())?;
+
+            return Ok(());
+        }
         return Ok(());
     }
 

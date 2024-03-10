@@ -110,3 +110,34 @@ fn test_command_nick_when_username_is_not_set() {
 
     assert!(response.is_none());
 }
+
+
+#[test]
+fn test_command_nick_when_username_is_set() {
+    // if nick is also set, return 001, 002, 003, 004
+    let (mut stream, mut user) = setup();
+
+    user.username = USER_NAME.to_string();
+
+    let request_message = format!("NICK {}\r\n", NICK_NAME);
+
+    stream.read_message.push(request_message.as_bytes().to_vec());
+
+    let _ = execute(&mut stream, &mut user);
+
+    assert_eq!(user.username, USER_NAME);
+    assert_eq!(user.nickname, NICK_NAME);
+
+    let raw_welcome = stream.write_message.pop();
+
+    assert!(!raw_welcome.is_none());
+
+    let welcome = raw_welcome.unwrap();
+
+    let expected_welcome_msg = format!(
+        "{} 001 :Welcome to the rust irc server\r\n",
+        HOST_ADDR,
+    );
+    assert_eq!(welcome, expected_welcome_msg.as_bytes().to_vec());
+
+}
