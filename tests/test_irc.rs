@@ -56,4 +56,8 @@ fn test_command_user_when_nick_is_not_set() {
     let raw_response = stream.write_message.pop();
 
     assert!(raw_response.is_none());
+
+    assert_eq!(user.username, USER_NAME);
+}
+
 }
