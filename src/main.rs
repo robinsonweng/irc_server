@@ -23,8 +23,6 @@ fn main() -> std::io::Result<()> {
 
 fn handle_connection(tcp_stream: TcpStream) -> std::io::Result<()> {
     let mut stream = tcp_stream;
-    let client_ip = stream.peer_addr()?;
-    // let host_ip = stream.local_addr()?;
 
     let (r_second, r_micro_second) = READ_TIMEOUT;
     let (w_second, w_micro_second) = WRITE_TIMEOUT;
