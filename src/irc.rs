@@ -31,6 +31,11 @@ where T: Read + Write
         return Ok(());
     }
 
+    if command == "NICK" {
+        user.set_nickname(&message);
+        return Ok(());
+    }
+
 
     println!("incoming command: '{}'", command);
     println!("incoming message: '{}'", message);
@@ -44,7 +49,7 @@ where T: Read + Write
 pub trait User {
     fn register_complete(self) -> bool;
     fn set_username(&mut self, username: &str);
-
+    fn set_nickname(&mut self, nickname: &str);
 }
 
 pub struct IrcUser {
@@ -58,6 +63,9 @@ impl User for IrcUser {
     }
     fn set_username(&mut self, username: &str) {
         self.username = username.to_string();
+    }
+    fn set_nickname(&mut self, nickname: &str) {
+        self.nickname = nickname.to_string();
     }
 }
 

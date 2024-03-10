@@ -46,4 +46,7 @@ impl User for MockedUser {
     fn set_username(&mut self, username: &str) {
         self.username = username.to_string();
     }
+    fn set_nickname(&mut self, nickname: &str) {
+        self.nickname = nickname.to_string();
+    }
 }

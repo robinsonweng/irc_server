@@ -9,6 +9,7 @@ use common::{MockedStream, MockedUser};
 
 
 const USER_NAME: &str = "rob";
+const NICK_NAME: &str = "haru";
 const CHANNEL_NAME: &str = "rust";
 
 
@@ -58,6 +59,24 @@ fn test_command_user_when_nick_is_not_set() {
     assert!(raw_response.is_none());
 
     assert_eq!(user.username, USER_NAME);
+}
+
+
+#[test]
+fn test_command_nick_when_username_is_not_set() {
+    let (mut stream, mut user) = setup();
+
+    let request_message = format!("NICK {}\r\n", NICK_NAME);
+
+    stream.read_message.push(request_message.as_bytes().to_vec());
+
+    let _ = execute(&mut stream, &mut user);
+
+    assert_eq!(user.nickname, NICK_NAME);
+
+    let response = stream.write_message.pop();
+
+    assert!(response.is_none());
 }
 
 }
