@@ -5,15 +5,26 @@ pub fn execute<T>(stream: &mut T) -> std::io::Result<()>
 where T: Read + Write
 {
     let mut buf: [u8; 128] = [0; 128];
-    let raw_message = stream.read(&mut buf);
+    let _ = stream.read(&mut buf);
 
-    let message = String::from_utf8((&buf).to_vec()).unwrap_or_else(|_| {
+    let raw_message = String::from_utf8((&buf).to_vec()).unwrap_or_else(|_| {
         panic!(
-            "Cant convert message {:?} to utf-8", &raw_message
+            "Cant convert message {:?} to utf-8", &buf
         )
     });
 
-    let _ = stream.write(b"cool");
+    let splited_message = raw_message.split_once(" ");
+
+    if splited_message.is_none() {
+        todo!()
+    }
+
+    let (command, message) = splited_message.unwrap();
+
+    println!("incoming command: '{}'", command);
+    println!("incoming message: '{}'", message);
+
+    let _ = stream.write(b"cool\r\n");
 
     Ok(())
 }
