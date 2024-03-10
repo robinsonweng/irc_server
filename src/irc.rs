@@ -13,19 +13,21 @@ where T: Read + Write
         )
     });
 
-    let splited_message = raw_message.split_once(" ");
-
+    let splited_message = raw_message.trim_matches(char::from(0)).split_once(' ');
     if splited_message.is_none() {
         todo!()
     }
 
-    let (command, message) = splited_message.unwrap();
+    let (command, message_with_newline) = splited_message.unwrap();
+
+    let message = message_with_newline.replace("\r\n", "");
 
     if command == "CAP" {
         return Ok(());
     }
 
     if command == "USER" {
+        user.set_username(&message);
         return Ok(());
     }
 
@@ -33,7 +35,7 @@ where T: Read + Write
     println!("incoming command: '{}'", command);
     println!("incoming message: '{}'", message);
 
-    let _ = stream.write(b"cool\r\n");
+    // let _ = stream_writer.write(b"cool\r\n");
 
     Ok(())  // command not found?
 }
