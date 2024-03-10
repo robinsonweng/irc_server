@@ -47,7 +47,7 @@ fn test_command_user_when_nick_is_not_set() {
     let (mut stream, mut user) = setup();
 
     let mut request_message = String::new();
-    let _ = write!(&mut request_message, "USER {}", USER_NAME);
+    let _ = write!(&mut request_message, "USER {}\r\n", USER_NAME);
 
     stream.read_message.push(request_message.as_bytes().to_vec());
 
