@@ -40,7 +40,7 @@ pub struct MockedUser {
 }
 
 impl User for MockedUser {
-    fn register_complete(self) -> bool {
+    fn register_complete(&self) -> bool {
         !self.username.is_empty() && !self.nickname.is_empty()
     }
     fn set_username(&mut self, username: &str) {

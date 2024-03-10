@@ -47,7 +47,7 @@ where T: Read + Write
 
 
 pub trait User {
-    fn register_complete(self) -> bool;
+    fn register_complete(&self) -> bool;
     fn set_username(&mut self, username: &str);
     fn set_nickname(&mut self, nickname: &str);
 }
@@ -58,7 +58,7 @@ pub struct IrcUser {
 }
 
 impl User for IrcUser {
-    fn register_complete(self) -> bool {
+    fn register_complete(&self) -> bool {
         !self.nickname.is_empty() && !self.username.is_empty()
     }
     fn set_username(&mut self, username: &str) {
