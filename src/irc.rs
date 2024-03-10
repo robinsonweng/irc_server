@@ -1,6 +1,25 @@
 use std::io::{Read, Write};
 
 
+#[derive(PartialEq, Eq)]
+enum CommandFromUser {
+    CAP,
+    USER,
+    NICK,
+}
+
+impl From<String> for CommandFromUser {
+    fn from(command: String) -> Self {
+        match command.as_str() {
+            "CAP" => Self::CAP,
+            "USER" => Self::USER,
+            "NICK" => Self::NICK,
+            _=> todo!(),
+        }
+    }
+}
+
+
 pub fn execute<T>(stream: &mut T, user: &mut impl User) -> std::io::Result<()>
 where T: Read + Write
 {
@@ -18,43 +37,26 @@ where T: Read + Write
         todo!()
     }
 
-    let (command, message_with_newline) = splited_message.unwrap();
+    let (raw_command, message_with_newline) = splited_message.unwrap();
 
     let message = message_with_newline.replace("\r\n", "");
 
-    if command == "CAP" {
+    let command = CommandFromUser::from(raw_command.to_string());
+    match command{
+        CommandFromUser::CAP => return Ok(()),
+        CommandFromUser::USER => user.set_username(&message),
+        CommandFromUser::NICK => user.set_nickname(&message),
+    };
+
+    if user.register_complete() && (command == CommandFromUser::USER || command == CommandFromUser::NICK){
+        let welcome = format!("{} 001 :Welcome to the rust irc server\r\n", "localhost");
+        let _ = stream.write(welcome.as_bytes())?;
+
         return Ok(());
     }
 
-    if command == "USER" {
-        user.set_username(&message);
-
-        if user.register_complete() {
-            let welcome = format!("{} 001 :Welcome to the rust irc server\r\n", "localhost");
-            let _ = stream.write(welcome.as_bytes())?;
-
-            return Ok(());
-        }
-        return Ok(());
-    }
-
-    if command == "NICK" {
-        user.set_nickname(&message);
-
-        if user.register_complete() {
-            let welcome = format!("{} 001 :Welcome to the rust irc server\r\n", "localhost");
-            let _ = stream.write(welcome.as_bytes())?;
-
-            return Ok(());
-        }
-        return Ok(());
-    }
-
-
-    println!("incoming command: '{}'", command);
+    println!("incoming command: '{}'", raw_command);
     println!("incoming message: '{}'", message);
-
-    // let _ = stream_writer.write(b"cool\r\n");
 
     Ok(())  // command not found?
 }
