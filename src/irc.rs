@@ -37,3 +37,33 @@ where T: Read + Write
 
     Ok(())  // command not found?
 }
+
+
+pub trait User {
+    fn register_complete(self) -> bool;
+    fn set_username(&mut self, username: &str);
+
+}
+
+pub struct IrcUser {
+    username: String,
+    nickname: String,
+}
+
+impl User for IrcUser {
+    fn register_complete(self) -> bool {
+        !self.nickname.is_empty() && !self.username.is_empty()
+    }
+    fn set_username(&mut self, username: &str) {
+        self.username = username.to_string();
+    }
+}
+
+impl IrcUser {
+    pub fn new() -> Self {
+        Self {
+            username: String::new(),
+            nickname: String::new(),
+        }
+    }
+}
