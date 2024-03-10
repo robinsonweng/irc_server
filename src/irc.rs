@@ -1,7 +1,7 @@
 use std::io::{Read, Write};
 
 
-pub fn execute<T>(stream: &mut T) -> std::io::Result<()>
+pub fn execute<T>(stream: &mut T, user: &mut impl User) -> std::io::Result<()>
 where T: Read + Write
 {
     let mut buf: [u8; 128] = [0; 128];

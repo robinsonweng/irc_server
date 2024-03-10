@@ -1,5 +1,7 @@
 use std::io::{Read, Write};
 
+use irc_server::irc::User;
+
 
 pub struct MockedStream {
     pub read_message: Vec<Vec<u8>>,
@@ -29,5 +31,19 @@ impl Write for MockedStream {
     }
     fn flush(&mut self) -> std::io::Result<()> {
         todo!()
+    }
+}
+
+pub struct MockedUser {
+    pub username: String,
+    pub nickname: String,
+}
+
+impl User for MockedUser {
+    fn register_complete(self) -> bool {
+        !self.username.is_empty() && !self.nickname.is_empty()
+    }
+    fn set_username(&mut self, username: &str) {
+        self.username = username.to_string();
     }
 }

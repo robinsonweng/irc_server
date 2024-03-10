@@ -1,7 +1,7 @@
 use std::net::{Ipv4Addr, SocketAddrV4, TcpListener, TcpStream};
 use std::time::Duration;
 
-use irc_server::irc::execute;
+use irc_server::irc::{execute, IrcUser};
 
 
 const READ_TIMEOUT: (u64, u32) = (20, 0);
@@ -31,7 +31,9 @@ fn handle_connection(tcp_stream: TcpStream) -> std::io::Result<()> {
     stream.set_read_timeout(Some(Duration::new(r_second, r_micro_second)))?;
     stream.set_write_timeout(Some(Duration::new(w_second, w_micro_second)))?;
 
-    execute(&mut stream)?;
+
+    let mut user = IrcUser::new();
+    execute(&mut stream, &mut user)?;
 
     Ok(())
 }
