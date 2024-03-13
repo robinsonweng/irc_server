@@ -1,7 +1,7 @@
 use std::fmt::Write as _;
 
 
-use irc_server::irc::execute;
+use irc_server::irc::{execute, welcome_messages};
 
 
 mod common;
@@ -79,17 +79,34 @@ fn test_command_user_when_nick_is_set() {
     assert_eq!(user.username, USER_NAME);
     assert_eq!(user.nickname, NICK_NAME);
 
+    // since the pop will do FILO, the message order should be reverse
+    let raw_my_info = stream.write_message.pop();
+    assert!(!raw_my_info.is_none());
+    let my_info = raw_my_info.unwrap();
+
+    let raw_created = stream.write_message.pop();
+    assert!(!raw_created.is_none());
+    let created = raw_created.unwrap();
+
+    let raw_your_host = stream.write_message.pop();
+    assert!(!raw_your_host.is_none());
+    let your_host = raw_your_host.unwrap();
+
     let raw_welcome = stream.write_message.pop();
-
     assert!(!raw_welcome.is_none());
-
     let welcome = raw_welcome.unwrap();
 
-    let expected_welcome_msg = format!(
-        "{} 001 :Welcome to the rust irc server\r\n",
-        HOST_ADDR,
-    );
-    assert_eq!(welcome, expected_welcome_msg.as_bytes().to_vec());
+    let (
+        expected_welcome,
+        expected_your_host,
+        expected_created,
+        expected_my_info,
+    ) = welcome_messages(HOST_ADDR, NICK_NAME);
+
+    assert_eq!(String::from_utf8(welcome), Ok(expected_welcome));
+    assert_eq!(String::from_utf8(your_host), Ok(expected_your_host));
+    assert_eq!(String::from_utf8(created), Ok(expected_created));
+    assert_eq!(String::from_utf8(my_info), Ok(expected_my_info));
 
 }
 
@@ -128,16 +145,37 @@ fn test_command_nick_when_username_is_set() {
     assert_eq!(user.username, USER_NAME);
     assert_eq!(user.nickname, NICK_NAME);
 
+    let raw_my_info = stream.write_message.pop();
+    assert!(!raw_my_info.is_none());
+    let my_info = raw_my_info.unwrap();
+
+    let raw_created = stream.write_message.pop();
+    assert!(!raw_created.is_none());
+    let created = raw_created.unwrap();
+
+    let raw_your_host = stream.write_message.pop();
+    assert!(!raw_your_host.is_none());
+    let your_host = raw_your_host.unwrap();
+
     let raw_welcome = stream.write_message.pop();
-
     assert!(!raw_welcome.is_none());
-
     let welcome = raw_welcome.unwrap();
 
-    let expected_welcome_msg = format!(
-        "{} 001 :Welcome to the rust irc server\r\n",
-        HOST_ADDR,
-    );
-    assert_eq!(welcome, expected_welcome_msg.as_bytes().to_vec());
+    let (
+        expected_welcome,
+        expected_your_host,
+        expected_created,
+        expected_my_info,
+    ) = welcome_messages(HOST_ADDR, NICK_NAME);
+
+    assert_eq!(String::from_utf8(welcome), Ok(expected_welcome));
+    assert_eq!(String::from_utf8(your_host), Ok(expected_your_host));
+    assert_eq!(String::from_utf8(created), Ok(expected_created));
+    assert_eq!(String::from_utf8(my_info), Ok(expected_my_info));
+}
+
+
+#[test]
+fn test_command_join() {
 
 }

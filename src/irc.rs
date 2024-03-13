@@ -49,8 +49,18 @@ where T: Read + Write
     };
 
     if user.register_complete() && (command == CommandFromUser::USER || command == CommandFromUser::NICK){
-        let welcome = format!("{} 001 :Welcome to the rust irc server\r\n", "localhost");
+        // return welcome message
+        let (
+            welcome,
+            your_host,
+            created,
+            my_info
+        ) = welcome_messages("localhost", user.get_nickname());
+
         let _ = stream.write(welcome.as_bytes())?;
+        let _ = stream.write(your_host.as_bytes())?;
+        let _ = stream.write(created.as_bytes())?;
+        let _ = stream.write(my_info.as_bytes())?;
 
         return Ok(());
     }
@@ -66,6 +76,7 @@ pub trait User {
     fn register_complete(&self) -> bool;
     fn set_username(&mut self, username: &str);
     fn set_nickname(&mut self, nickname: &str);
+    fn get_nickname(&self) -> &str;
 }
 
 pub struct IrcUser {
@@ -83,6 +94,9 @@ impl User for IrcUser {
     fn set_nickname(&mut self, nickname: &str) {
         self.nickname = nickname.to_string();
     }
+    fn get_nickname(&self) -> &str {
+        &self.nickname
+    }
 }
 
 impl IrcUser {
@@ -92,4 +106,28 @@ impl IrcUser {
             nickname: String::new(),
         }
     }
+}
+
+pub fn welcome_messages(host_name: &str, nickname: &str) -> (String, String, String, String) {
+    let welcome = format!(
+        "{} 001 :Welcome to the rust irc server\r\n",
+        host_name,
+    );
+    let your_host = format!(
+        "{} {} 002 :Your host is rust irc, running version 1.0.0-dev\r\n",
+        host_name,
+        nickname,
+    );
+    let created = format!(
+        "{} {} 003 :Are you solid like a rock?\r\n",
+        host_name,
+        nickname,
+    );
+    let my_info = format!(
+        "{} {} 004 :Let me see see\r\n",
+        host_name,
+        nickname,
+    );
+
+    (welcome, your_host, created, my_info)
 }
