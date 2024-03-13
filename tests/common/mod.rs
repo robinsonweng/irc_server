@@ -34,6 +34,15 @@ impl Write for MockedStream {
     }
 }
 
+impl MockedStream {
+    pub fn expect_message(&mut self, expected_message: Option<&str>) {
+        let message = self.write_message
+            .pop()
+            .map(|x| String::from_utf8(x).expect("incorrect message"));
+        assert_eq!(message, Option::from(expected_message).map(|x: &str| x.to_string()));
+    }
+}
+
 pub struct MockedUser {
     pub username: String,
     pub nickname: String,
