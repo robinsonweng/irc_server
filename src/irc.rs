@@ -1,5 +1,5 @@
 use std::io::{Read, Write};
-
+use regex::Regex;
 
 #[derive(PartialEq, Eq)]
 enum CommandFromUser {
@@ -44,8 +44,25 @@ where T: Read + Write
     let command = CommandFromUser::from(raw_command.to_string());
     match command{
         CommandFromUser::CAP => return Ok(()),
-        CommandFromUser::USER => user.set_username(&message),
-        CommandFromUser::NICK => user.set_nickname(&message),
+        CommandFromUser::USER => {
+            // add parsing for USER command body
+            // user.set_username(&message);
+            let re = Regex::new(r"^(\S+) (\S+) (\S+) :([ -~]+)").unwrap();
+            if !re.is_match(&message) {
+                todo!("unprocessable message")
+            }
+            let capture = re.captures(&message).unwrap();
+            let username = capture.get(1).unwrap().as_str();
+            let _hostname = capture.get(2).unwrap().as_str();
+            let _servername = capture.get(3).unwrap().as_str();
+            let realname = capture.get(4).unwrap().as_str();
+
+            user.set_username(username);
+            user.set_real_name(realname);
+        }
+        CommandFromUser::NICK => {
+            user.set_nickname(&message);
+        },
     };
 
     if user.register_complete() && (command == CommandFromUser::USER || command == CommandFromUser::NICK){
@@ -77,11 +94,13 @@ pub trait User {
     fn set_username(&mut self, username: &str);
     fn set_nickname(&mut self, nickname: &str);
     fn get_nickname(&self) -> &str;
+    fn set_real_name(&mut self, realname: &str);
 }
 
 pub struct IrcUser {
     username: String,
     nickname: String,
+    realname: String,
 }
 
 impl User for IrcUser {
@@ -97,6 +116,9 @@ impl User for IrcUser {
     fn get_nickname(&self) -> &str {
         &self.nickname
     }
+    fn set_real_name(&mut self, realname: &str) {
+        self.realname = realname.to_string();
+    }
 }
 
 impl IrcUser {
@@ -104,8 +126,15 @@ impl IrcUser {
         Self {
             username: String::new(),
             nickname: String::new(),
+            realname: String::new(),
         }
     }
+}
+
+fn register_user<T>(stream: &mut T, user: &impl User, command: &CommandFromUser) -> std::io::Result<()>
+where T: Read + Write
+{
+    todo!()
 }
 
 pub fn welcome_messages(host_name: &str, nickname: &str) -> (String, String, String, String) {

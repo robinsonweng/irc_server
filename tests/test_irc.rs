@@ -11,7 +11,7 @@ use common::{MockedStream, MockedUser};
 const HOST_ADDR: &str = "localhost";
 const USER_NAME: &str = "rob";
 const NICK_NAME: &str = "haru";
-const REAL_NAME: &str = "weng";
+const REAL_NAME: &str = "robinson weng";
 const CHANNEL_NAME: &str = "rust";
 
 
@@ -23,6 +23,7 @@ fn setup() -> (MockedStream, MockedUser) {
     let mocked_user = MockedUser {
         username: String::new(),
         nickname: String::new(),
+        realname: String::new(),
     };
     (mocked_stream, mocked_user)
 }
@@ -48,7 +49,7 @@ fn test_command_user_when_nick_is_not_set() {
     let (mut stream, mut user) = setup();
 
     let mut request_message = String::new();
-    let _ = write!(&mut request_message, "USER {}\r\n", USER_NAME);
+    let _ = write!(&mut request_message, "USER {} 0 * :{}\r\n", USER_NAME, REAL_NAME);
 
     stream.read_message.push(request_message.as_bytes().to_vec());
 
@@ -67,7 +68,7 @@ fn test_command_user_when_nick_is_set() {
 
     user.nickname = NICK_NAME.to_string();
 
-    let request_message = format!("USER {}\r\n", USER_NAME);
+    let request_message = format!("USER {} 0 * :{}\r\n", USER_NAME, REAL_NAME);
 
     stream.read_message.push(request_message.as_bytes().to_vec());
 
@@ -75,6 +76,7 @@ fn test_command_user_when_nick_is_set() {
 
     assert_eq!(user.username, USER_NAME);
     assert_eq!(user.nickname, NICK_NAME);
+    assert_eq!(user.realname, REAL_NAME);
 
     // since the pop will do FILO, the message order should be reverse
     let (

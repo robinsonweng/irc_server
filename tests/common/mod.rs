@@ -46,6 +46,7 @@ impl MockedStream {
 pub struct MockedUser {
     pub username: String,
     pub nickname: String,
+    pub realname: String,
 }
 
 impl User for MockedUser {
@@ -60,5 +61,8 @@ impl User for MockedUser {
     }
     fn get_nickname(&self) -> &str {
         &self.nickname
+    }
+    fn set_real_name(&mut self, realname: &str) {
+        self.realname = realname.to_string();
     }
 }
