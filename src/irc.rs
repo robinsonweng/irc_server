@@ -6,6 +6,7 @@ enum CommandFromUser {
     CAP,
     USER,
     NICK,
+    JOIN,
 }
 
 impl From<String> for CommandFromUser {
@@ -14,6 +15,7 @@ impl From<String> for CommandFromUser {
             "CAP" => Self::CAP,
             "USER" => Self::USER,
             "NICK" => Self::NICK,
+            "JOIN" => Self::JOIN,
             _=> todo!(),
         }
     }
@@ -63,6 +65,12 @@ where T: Read + Write
         CommandFromUser::NICK => {
             user.set_nickname(&message);
         },
+        CommandFromUser::JOIN => {
+            // user joins the channel
+
+            let rpl_topic = format!("{} #coolchannel :topic\r\n", user.get_nickname());
+            let _ = stream.write(rpl_topic.as_bytes())?;
+        }
     };
 
     if user.register_complete() && (command == CommandFromUser::USER || command == CommandFromUser::NICK){

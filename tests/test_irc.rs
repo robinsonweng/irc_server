@@ -1,4 +1,4 @@
-use std::fmt::Write as _;
+use std::fmt::{format, Write as _};
 
 
 use irc_server::irc::{execute, welcome_messages};
@@ -99,7 +99,7 @@ fn test_command_user_when_nick_is_set() {
 #[test]
 fn test_command_nick_when_username_is_not_set() {
     let (mut stream, mut user) = setup();
-
+    
     let request_message = format!("NICK {}\r\n", NICK_NAME);
 
     stream.read_message.push(request_message.as_bytes().to_vec());
@@ -146,18 +146,26 @@ fn test_command_nick_when_username_is_set() {
 
 
 #[test]
-fn test_command_join() {
+fn test_command_join_with_non_empty_topic() {
     // if nick is also set, return 001, 002, 003, 004
     let (mut stream, mut user) = setup();
 
     user.username = USER_NAME.to_string();
+    user.nickname = NICK_NAME.to_string();
 
-    let request_message = format!("JOIN {}\r\n", NICK_NAME);
+    let channel_name = "#coolchannel";
+    let topic_name = "topic";
+
+    let request_message = format!("JOIN {}\r\n", channel_name);
 
     stream.read_message.push(request_message.as_bytes().to_vec());
 
-    // let _ = execute(&mut stream, &mut user);
+    let _ = execute(&mut stream, &mut user);
 
-    // assert_eq!(user.username, USER_NAME);
-    // assert_eq!(user.nickname, NICK_NAME);
+    assert_eq!(user.username, USER_NAME);
+    assert_eq!(user.nickname, NICK_NAME);
+
+
+    let current_topic_in_channel = format!("{} {} :{}\r\n", NICK_NAME, channel_name, topic_name);
+    stream.expect_message(Some(&current_topic_in_channel));
 }
